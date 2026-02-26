@@ -1,20 +1,20 @@
 ---
 layout: page
-title: Past Offerings
+title: 歷年開課
 description: >
-  Find all past offerings of Missing Semester.
+  查看 Missing Semester 歷年的所有開課版本。
 ---
 
-{% comment %} pop to remove default "posts" collection {% endcomment %}
+{% comment %} 使用 pop 移除預設的 "posts" collection {% endcomment %}
 {% assign sorted_collections = site.collections | sort: 'label' | pop | reverse %}
 <ul>
 {% for collection in sorted_collections %}
     {% if forloop.index == 1 %}
-        <li><a href="/">{{ collection.label }}</a> (current)</li>
+        <li><a href="/">{{ collection.label }}</a>（目前）</li>
     {% else %}
         <li><a href="/{{ collection.label }}/">{{ collection.label }}</a></li>
     {% endif %}
 {% endfor %}
 </ul>
 
-Each year's lectures are fully self-contained. We recommend starting with the most recent version of the material. There is variation in the topics covered year to year, so we continue to host notes and videos for earlier versions of this course.
+每一年的講座內容都可以獨立學習。我們建議你先從最新版本的教材開始。由於每年涵蓋的主題會有些差異，我們也持續保留本課程早期版本的講義與影片。
