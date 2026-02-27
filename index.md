@@ -92,7 +92,7 @@ nositetitle: true
 - [德語](https://missing-semester-de.github.io/)
 - [義大利語](https://missing-semester-it.github.io/)
 - [日語](https://missing-semester-jp.github.io/)
-- [卡納達語](https://missing-semester-kn.github.io/)
+- [康納達語](https://missing-semester-kn.github.io/)
 - [韓語](https://missing-semester-kr.github.io/)
 - [波斯語](https://missing-semester-fa.github.io/)
 - [葡萄牙語](https://missing-semester-pt.github.io/)
