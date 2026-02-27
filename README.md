@@ -1,10 +1,10 @@
-# 你的 CS 教育中遺失的一學期
+# 你的電腦科學教育中遺失的一學期
 
 [![建置狀態](https://github.com/missing-semester/missing-semester/actions/workflows/build.yml/badge.svg)](https://github.com/missing-semester/missing-semester/actions/workflows/build.yml) [![連結檢查狀態](https://github.com/missing-semester/missing-semester/actions/workflows/links.yml/badge.svg)](https://github.com/missing-semester/missing-semester/actions/workflows/links.yml)
 
 這是 [The Missing Semester of Your CS Education](https://missing.csail.mit.edu/) 課程的網站！
 
-非常歡迎貢獻！如果你有要修改的內容，或想新增新內容，請開一個 issue 或送出 pull request。
+非常歡迎對此 REPO 貢獻！如果你有要修改的內容，或想新增新內容，請開一個 issue 或送出 pull request。
 
 ## 開發
 
@@ -27,14 +27,14 @@ docker-compose up --build
 | 講座 | 翻譯者 | 校對者 | 是否完成 |
 | --- | --- | --- | --- |
 | 課程總覽＋Shell 入門 | @AndreaFan123 | 尚未校對 | - [ ] |
-| 命令列環境 | @AndreaFan123 | 尚未校對 | - [ ] |
-| 開發環境與工具 | @AndreaFan123 | 尚未校對 | - [ ] |
-| 版本控制與 Git | @AndreaFan123 | 尚未校對 | - [ ] |
-| 除錯與效能分析 | @AndreaFan123 | 尚未校對 | - [ ] |
-| 程式碼品質 | @AndreaFan123 | 尚未校對 | - [ ] |
-| 代理式程式開發 | @AndreaFan123 | 尚未校對 | - [ ] |
-| 不只程式碼 | @AndreaFan123 | 尚未校對 | - [x] |
-| 程式封裝與發布 | @AndreaFan123 | 尚未校對 | - [x] |
+| 命令列環境 | @AndreaFan123 | 尚未校對 | ✅ |
+| 開發環境與工具 | @AndreaFan123 | 尚未校對 | ✅ |
+| 版本控制與 Git | @AndreaFan123 | 尚未校對 | ✅ |
+| 除錯與效能分析 | @AndreaFan123 | 尚未校對 | ✅ |
+| 程式碼品質 | @AndreaFan123 | 尚未校對 | ✅ |
+| 代理式程式開發 | @AndreaFan123 | 尚未校對 | ✅ |
+| 不只程式碼 | @AndreaFan123 | 尚未校對 | ✅ |
+| 程式封裝與發布 | @AndreaFan123 | 尚未校對 | ✅ |
 
 ## 授權條款
 
