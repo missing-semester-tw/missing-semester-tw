@@ -1,6 +1,6 @@
 ---
 layout: page
-title: 你的 CS 教育中遺失的一學期
+title: 你的電腦科學教育中遺失的一學期
 description: >
   掌握強大的工具，讓你成為更有效率的電腦科學學習者與程式設計者。
 subtitle: IAP 2026
