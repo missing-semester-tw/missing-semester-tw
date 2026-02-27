@@ -2,6 +2,8 @@
 title: '你的 CS 教育中遺失的一學期'
 url: https://missing-semester-tw.github.io
 thumbnail: "/static/assets/thumbnails/default.png"
+github_repository: missing-semester-tw/missing-semester-tw.github.io
+github_branch: master
 
 # Settings
 markdown: kramdown
