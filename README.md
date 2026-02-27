@@ -26,7 +26,7 @@ docker-compose up --build
 
 | 講座 | 翻譯者 | 校對者 | 是否完成 |
 | --- | --- | --- | --- |
-| 課程總覽＋Shell 入門 | @AndreaFan123 | 尚未校對 | - [ ] |
+| 課程總覽＋Shell 入門 | @AndreaFan123 | 尚未校對 | ✅ |
 | 命令列環境 | @AndreaFan123 | 尚未校對 | ✅ |
 | 開發環境與工具 | @AndreaFan123 | 尚未校對 | ✅ |
 | 版本控制與 Git | @AndreaFan123 | 尚未校對 | ✅ |
