@@ -1,8 +1,8 @@
 ---
 layout: lecture
-title: "Version Control and Git"
+title: "版本控制與 Git"
 description: >
-  Learn Git's data model and how to use Git for version control and collaboration.
+  學習 Git 的資料模型，以及如何使用 Git 進行版本控制與協作。
 thumbnail: /static/assets/thumbnails/2026/lec5.png
 date: 2026-01-16
 ready: true
@@ -11,61 +11,32 @@ video:
   id: 9K8lB61dl3Y
 ---
 
-Version control systems (VCSs) are tools used to track changes to source code
-(or other collections of files and folders). As the name implies, these tools
-help maintain a history of changes; furthermore, they facilitate collaboration.
-Logically, VCSs track changes to a folder and its contents in a series of
-_snapshots_, where each snapshot encapsulates the entire state of files/folders
-within a top-level directory. VCSs also maintain metadata like who created each
-snapshot, messages associated with each snapshot, and so on.
+版本控制系統（VCS）是用來追蹤原始碼（或其他檔案與資料夾集合）變更的工具。如同名稱所示，這些工具能幫助你維護變更歷史；此外，它們也讓協作更容易。
+從邏輯上來看，VCS 會以一系列的 _快照（snapshot）_ 追蹤某個資料夾及其內容的變化，其中每個快照都封裝了最上層目錄下檔案／資料夾的完整狀態。VCS 也會維護中繼資料，例如每個快照是誰建立的、快照的訊息等等。
 
-Why is version control useful? Even when you're working by yourself, it can let
-you look at old snapshots of a project, keep a log of why certain changes were
-made, work on parallel branches of development, and much more. When working
-with others, it's an invaluable tool for seeing what other people have changed,
-as well as resolving conflicts in concurrent development.
+為什麼版本控制很有用？即使你一個人開發，它也能讓你查看專案的舊快照、記錄特定變更為何發生、平行開發不同分支，還有更多用途。當你與他人合作時，它更是不可或缺：你可以看到別人改了什麼，也能處理並行開發時的衝突。
 
-Modern VCSs also let you easily (and often automatically) answer questions
-like:
+現代的 VCS 也能讓你輕鬆（而且常常是自動地）回答像這樣的問題：
 
-- Who wrote this module?
-- When was this particular line of this particular file edited? By whom? Why
-  was it edited?
-- Over the last 1000 revisions, when/why did a particular unit test stop
-working?
+- 這個模組是誰寫的？
+- 這個檔案中的某一行是什麼時候被改的？誰改的？為什麼改？
+- 在最近 1000 次修訂中，某個單元測試是從什麼時候開始壞掉的？為什麼？
 
-While other VCSs exist, **Git** is the de facto standard for version control.
-This [XKCD comic](https://xkcd.com/1597/) captures Git's reputation:
+雖然還有其他 VCS，但 **Git** 已經是版本控制的事實標準。這張 [XKCD 漫畫](https://xkcd.com/1597/) 很貼切地呈現了 Git 的名聲：
 
 ![xkcd 1597](https://imgs.xkcd.com/comics/git.png)
 
-Because Git's interface is a leaky abstraction, learning Git top-down (starting
-with its interface / command-line interface) can lead to a lot of confusion.
-It's possible to memorize a handful of commands and think of them as magic
-incantations, and follow the approach in the comic above whenever anything goes
-wrong.
+由於 Git 的介面是「抽象層有滲漏」的設計，若用由上而下的方式學 Git（從介面／命令列介面開始）很容易讓人困惑。你可能只背了幾個指令，把它們當成咒語，然後每次出錯就照著上面漫畫那種方式處理。
 
-While Git admittedly has an ugly interface, its underlying design and ideas are
-beautiful. While an ugly interface has to be _memorized_, a beautiful design
-can be _understood_. For this reason, we give a bottom-up explanation of Git,
-starting with its data model and later covering the command-line interface.
-Once the data model is understood, the commands can be better understood in
-terms of how they manipulate the underlying data model.
+雖然 Git 的介面確實不太好看，但它底層的設計與概念其實很漂亮。不好看的介面常常只能 _硬背_，漂亮的設計則可以 _理解_。因此我們會用由下而上的方式解釋 Git：先從資料模型開始，再談命令列介面。當你理解資料模型後，就能更清楚指令到底在如何操作底層資料模型。
 
-# Git's data model
+# Git 的資料模型
 
-Git's ingenuity is in its well-thought-out data model that enables all the nice
-features of version control, like maintaining history, supporting branches, and
-enabling collaboration.
+Git 的巧妙之處在於它經過深思熟慮的資料模型，正是這個模型讓版本控制的各種功能成為可能，例如維護歷史、支援分支，以及促進協作。
 
-## Snapshots
+## 快照（Snapshots） {#snapshots}
 
-Git models the history of a collection of files and folders within some
-top-level directory as a series of snapshots. In Git terminology, a file is
-called a "blob", and it's just a bunch of bytes. A directory is called a
-"tree", and it maps names to blobs or trees (so directories can contain other
-directories). A snapshot is the top-level tree that is being tracked. For
-example, we might have a tree as follows:
+Git 會把某個最上層目錄中一組檔案與資料夾的歷史，建模成一系列快照。在 Git 術語裡，檔案叫做「blob」，本質上就是一串位元組。資料夾叫做「tree」，它會把名稱對應到 blob 或 tree（所以資料夾裡可以再包含其他資料夾）。一個快照就是被追蹤的最上層 tree。舉例來說，我們可能有這樣一棵 tree：
 
 ```
 <root> (tree)
@@ -77,24 +48,15 @@ example, we might have a tree as follows:
 +- baz.txt (blob, contents = "git is wonderful")
 ```
 
-The top-level tree contains two elements, a tree "foo" (that itself contains
-one element, a blob "bar.txt"), and a blob "baz.txt".
+最上層 tree 包含兩個元素：一個是 tree「foo」（它自己又包含一個元素，也就是 blob「bar.txt」），另一個是 blob「baz.txt」。
 
-## Modeling history: relating snapshots
+## 歷史建模：如何關聯快照
 
-How should a version control system relate snapshots? One simple model would be
-to have a linear history. A history would be a list of snapshots in time-order.
-For many reasons, Git doesn't use a simple model like this.
+版本控制系統該如何把快照彼此關聯起來？一個簡單模型是線性歷史，也就是按時間順序排列的快照清單。但基於很多原因，Git 並沒有採用這種簡單模型。
 
-In Git, a history is a directed acyclic graph (DAG) of snapshots. That may
-sound like a fancy math word, but don't be intimidated. All this means is that
-each snapshot in Git refers to a set of "parents", the snapshots that preceded
-it. It's a set of parents rather than a single parent (as would be the case in
-a linear history) because a snapshot might descend from multiple parents, for
-example, due to combining (merging) two parallel branches of development.
+在 Git 裡，歷史是一張由快照構成的有向無環圖（DAG）。聽起來像很數學的詞，但不用害怕。它的意思只是：Git 中每個快照都會參照一組「父節點（parents）」，也就是它之前的快照。之所以是「一組」而不是單一父節點（像線性歷史那樣），是因為某個快照可能同時來自多個父節點，例如把兩條平行開發分支合併（merge）時就會發生。
 
-Git calls these snapshots "commit"s. Visualizing a commit history might look
-something like this:
+Git 把這些快照稱為「commit」。把 commit 歷史視覺化後可能像這樣：
 
 ```
 o <-- o <-- o <-- o
@@ -103,14 +65,7 @@ o <-- o <-- o <-- o
               --- o <-- o
 ```
 
-In the ASCII art above, the `o`s correspond to individual commits (snapshots).
-The arrows point to the parent of each commit (it's a "comes before" relation,
-not "comes after"). After the third commit, the history branches into two
-separate branches. This might correspond to, for example, two separate features
-being developed in parallel, independently from each other. In the future,
-these branches may be merged to create a new snapshot that incorporates both of
-the features, producing a new history that looks like this, with the newly
-created merge commit shown in bold:
+在上面的 ASCII 圖中，`o` 代表各個 commit（快照）。箭頭指向每個 commit 的父節點（是「先於」關係，不是「後於」關係）。第三個 commit 之後，歷史分岔成兩條獨立分支。這可能對應到兩個不同功能在平行開發、彼此互不依賴。未來這些分支可以再合併，產生一個同時包含兩個功能的新快照，形成如下的新歷史，其中新建立的 merge commit 以粗體標示：
 
 <pre class="highlight">
 <code>
@@ -121,23 +76,20 @@ o <-- o <-- o <-- o <---- <strong>o</strong>
 </code>
 </pre>
 
-Commits in Git are immutable. This doesn't mean that mistakes can't be
-corrected, however; it's just that "edits" to the commit history are actually
-creating entirely new commits, and references (see below) are updated to point
-to the new ones.
+Git 中的 commit 是不可變（immutable）的。不過這不代表錯誤不能修正；只是對 commit 歷史做「修改」時，實際上是在建立全新的 commit，並把參照（見下文）更新成指向新的 commit。
 
-## Data model, as pseudocode
+## 用偽程式碼看資料模型
 
-It may be instructive to see Git's data model written down in pseudocode:
+用偽程式碼寫下 Git 的資料模型，通常很有幫助：
 
 ```
-// a file is a bunch of bytes
+// 檔案就是一串位元組
 type blob = array<byte>
 
-// a directory contains named files and directories
+// 資料夾包含具名檔案與子資料夾
 type tree = map<string, tree | blob>
 
-// a commit has parents, metadata, and the top-level tree
+// commit 包含父節點、中繼資料與最上層 tree
 type commit = struct {
     parents: array<commit>
     author: string
@@ -146,18 +98,17 @@ type commit = struct {
 }
 ```
 
-It's a clean, simple model of history.
+這是一個乾淨、簡單的歷史模型。
 
-## Objects and content-addressing
+## 物件與內容定址（content-addressing）
 
-An "object" is a blob, tree, or commit:
+「object」可以是 blob、tree 或 commit：
 
 ```
 type object = blob | tree | commit
 ```
 
-In Git's data store, all objects are content-addressed by their [SHA-1
-hash](https://en.wikipedia.org/wiki/SHA-1).
+在 Git 的資料儲存中，所有 object 都透過其 [SHA-1 雜湊值](https://en.wikipedia.org/wiki/SHA-1) 進行內容定址。
 
 ```
 objects = map<string, object>
@@ -170,38 +121,26 @@ def load(id):
     return objects[id]
 ```
 
-Blobs, trees, and commits are unified in this way: they are all objects. When
-they reference other objects, they don't actually _contain_ them in their
-on-disk representation, but have a reference to them by their hash.
+blob、tree 和 commit 在這裡被統一看待：它們都是 object。當它們參照其他 object 時，磁碟上的表示法裡並不會真的 _包含_ 對方內容，而是透過雜湊值去參照對方。
 
-For example, the tree for the example directory structure [above](#snapshots)
-(visualized using `git cat-file -p 698281bc680d1995c5f4caaf3359721a5a58d48d`),
-looks like this:
+例如，上面[快照範例](#snapshots)中的資料夾結構，其 tree（用 `git cat-file -p 698281bc680d1995c5f4caaf3359721a5a58d48d` 顯示）長這樣：
 
 ```
 100644 blob 4448adbf7ecd394f42ae135bbeed9676e894af85    baz.txt
 040000 tree c68d233a33c5c06e0340e4c224f0afca87c8ce87    foo
 ```
 
-The tree itself contains pointers to its contents, `baz.txt` (a blob) and `foo`
-(a tree). If we look at the contents addressed by the hash corresponding to
-baz.txt with `git cat-file -p 4448adbf7ecd394f42ae135bbeed9676e894af85`, we get
-the following:
+這個 tree 本身包含指向其內容的指標：`baz.txt`（blob）與 `foo`（tree）。如果我們用 `git cat-file -p 4448adbf7ecd394f42ae135bbeed9676e894af85` 查看對應 `baz.txt` 雜湊值所定址的內容，會得到：
 
 ```
 git is wonderful
 ```
 
-## References
+## 參照（References）
 
-Now, all snapshots can be identified by their SHA-1 hashes. That's inconvenient,
-because humans aren't good at remembering strings of 40 hexadecimal characters.
+現在，所有快照都可以透過 SHA-1 雜湊值識別。不過這很不方便，因為人類不擅長記住 40 個十六進位字元的長字串。
 
-Git's solution to this problem is human-readable names for SHA-1 hashes, called
-"references". References are pointers to commits. Unlike objects, which are
-immutable, references are mutable (can be updated to point to a new commit).
-For example, the `master` reference usually points to the latest commit in the
-main branch of development.
+Git 解決這個問題的方法，是替 SHA-1 雜湊值提供人可讀名稱，稱為「references」。reference 是指向 commit 的指標。與不可變的 object 不同，reference 是可變的（可以更新成指向新的 commit）。例如，`master` reference 通常會指向主要開發分支上的最新 commit。
 
 ```
 references = map<string, string>
@@ -219,214 +158,120 @@ def load_reference(name_or_id):
         return load(name_or_id)
 ```
 
-With this, Git can use human-readable names like "master" to refer to a
-particular snapshot in the history, instead of a long hexadecimal string.
+有了這個機制，Git 就能用像「master」這樣的人可讀名稱來指向歷史中的特定快照，而不用那串很長的十六進位字串。
 
-One detail is that we often want a notion of "where we currently are" in the
-history, so that when we take a new snapshot, we know what it is relative to
-(how we set the `parents` field of the commit). In Git, that "where we
-currently are" is a special reference called "HEAD".
+其中有個細節是：我們常常需要知道自己「目前位在歷史的哪裡」，這樣在建立新快照時，才知道它是相對於哪個位置（也就是 commit 的 `parents` 欄位該怎麼設定）。在 Git 裡，這個「目前位置」是一個特殊 reference，叫做「HEAD」。
 
-## Repositories
+## 儲存庫（Repositories）
 
-Finally, we can define what (roughly) is a Git _repository_: it is the data
-`objects` and `references`.
+最後，我們可以粗略定義什麼是 Git _repository_：它就是 `objects` 與 `references` 這兩類資料。
 
-On disk, all Git stores are objects and references: that's all there is to Git's
-data model. All `git` commands map to some manipulation of the commit DAG by
-adding objects and adding/updating references.
+在磁碟上，Git 儲存的全部內容就是 object 與 reference：這就是 Git 資料模型的全部。所有 `git` 指令，本質上都對應到某種對 commit DAG 的操作：新增 object，或新增／更新 reference。
 
-Whenever you're typing in any command, think about what manipulation the
-command is making to the underlying graph data structure. Conversely, if you're
-trying to make a particular kind of change to the commit DAG, e.g. "discard
-uncommitted changes and make the 'master' ref point to commit `5d83f9e`", there's
-probably a command to do it (e.g. in this case, `git checkout master; git reset
---hard 5d83f9e`).
+每次你輸入任何指令時，都可以想想這個指令正在如何操作底層圖形資料結構。反過來說，如果你想對 commit DAG 做某種特定變更，例如「捨棄尚未提交的變更，並讓 `master` ref 指向 commit `5d83f9e`」，通常都會有對應指令（例如此例可用 `git checkout master; git reset --hard 5d83f9e`）。
 
-# Staging area
+# 暫存區（Staging area）
 
-This is another concept that's orthogonal to the data model, but it's a part of
-the interface to create commits.
+這是另一個和資料模型正交的概念，但它是建立 commit 時介面的一部分。
 
-One way you might imagine implementing snapshotting as described above is to have
-a "create snapshot" command that creates a new snapshot based on the _current
-state_ of the working directory. Some version control tools work like this, but
-not Git. We want clean snapshots, and it might not always be ideal to make a
-snapshot from the current state. For example, imagine a scenario where you've
-implemented two separate features, and you want to create two separate commits,
-where the first introduces the first feature, and the next introduces the
-second feature. Or imagine a scenario where you have debugging print statements
-added all over your code, along with a bugfix; you want to commit the bugfix
-while discarding all the print statements.
+你可能會想像，上面提到的快照機制可以用一個「create snapshot」指令實作，直接依據工作目錄的 _目前狀態_ 建立新快照。有些版本控制工具確實這樣做，但 Git 不是。我們想要的是乾淨的快照，而從目前狀態直接建立快照不一定理想。舉例來說，假設你同時完成兩個獨立功能，希望切成兩個獨立 commit：第一個只包含功能 A，下一個只包含功能 B。又或者你為了除錯在程式到處加了 print，同時也修了一個 bug；你可能想只提交 bug 修正，把那些 print 全部丟掉。
 
-Git accommodates such scenarios by allowing you to specify which modifications
-should be included in the next snapshot through a mechanism called the "staging
-area".
+Git 透過「staging area（暫存區）」來支援這些情境：你可以明確指定哪些修改要納入下一個快照。
 
-# Git command-line interface
+# Git 命令列介面
 
-To avoid duplicating information, we're not going to explain the commands below
-in detail in these lecture notes. See the highly recommended [Pro
-Git](https://git-scm.com/book/en/v2) for more information, or watch the lecture
-video.
+為了避免重複，這份講義不會詳細解釋下面的每個指令。更多內容請參考強烈推薦的 [Pro Git](https://git-scm.com/book/en/v2)，或觀看課程影片。
 
-## Basics
+## 基礎
 
-- `git help <command>`: get help for a git command
-- `git init`: creates a new git repo, with data stored in the `.git` directory
-- `git status`: tells you what's going on
-- `git add <filename>`: adds files to staging area
-- `git commit`: creates a new commit
-    - Write [good commit messages](https://tbaggery.com/2008/04/19/a-note-about-git-commit-messages.html)!
-    - Even more reasons to write [good commit messages](https://chris.beams.io/posts/git-commit/)!
-- `git log`: shows a flattened log of history
-- `git log --all --graph --decorate`: visualizes history as a DAG
-- `git diff <filename>`: show changes you made relative to the staging area
-- `git diff <revision> <filename>`: shows differences in a file between snapshots
-- `git checkout <revision>`: updates HEAD (and current branch if checking out a branch)
+- `git help <command>`：查看某個 Git 指令的說明
+- `git init`：建立新的 Git 儲存庫，資料存放在 `.git` 目錄
+- `git status`：告訴你目前狀態
+- `git add <filename>`：把檔案加入暫存區
+- `git commit`：建立新的 commit
+    - 請寫出[好的 commit 訊息](https://tbaggery.com/2008/04/19/a-note-about-git-commit-messages.html)！
+    - 這裡有更多寫[好 commit 訊息](https://chris.beams.io/posts/git-commit/)的理由！
+- `git log`：顯示攤平後的歷史紀錄
+- `git log --all --graph --decorate`：將歷史以 DAG 形式視覺化
+- `git diff <filename>`：顯示相對於暫存區，你做了哪些修改
+- `git diff <revision> <filename>`：顯示兩個快照間該檔案的差異
+- `git checkout <revision>`：更新 HEAD（若 checkout 的是分支，也會更新目前分支）
 
-## Branching and merging
+## 分支與合併
 
-- `git branch`: shows branches
-- `git branch <name>`: creates a branch
-- `git switch <name>`: switches to a branch
-- `git checkout -b <name>`: creates a branch and switches to it
-    - same as `git branch <name>; git switch <name>`
-- `git merge <revision>`: merges into current branch
-- `git mergetool`: use a fancy tool to help resolve merge conflicts
-- `git rebase`: rebase set of patches onto a new base
+- `git branch`：顯示分支
+- `git branch <name>`：建立分支
+- `git switch <name>`：切換到某個分支
+- `git checkout -b <name>`：建立分支並切換過去
+    - 等同 `git branch <name>; git switch <name>`
+- `git merge <revision>`：把指定修訂合併到目前分支
+- `git mergetool`：使用圖形化／輔助工具處理 merge 衝突
+- `git rebase`：把一組修補（patch）重放到新的基底上
 
-## Remotes
+## 遠端（Remotes）
 
-- `git remote`: list remotes
-- `git remote add <name> <url>`: add a remote
-- `git push <remote> <local branch>:<remote branch>`: send objects to remote, and update remote reference
-- `git branch --set-upstream-to=<remote>/<remote branch>`: set up correspondence between local and remote branch
-- `git fetch`: retrieve objects/references from a remote
-- `git pull`: same as `git fetch; git merge`
-- `git clone`: download repository from remote
+- `git remote`：列出遠端
+- `git remote add <name> <url>`：新增遠端
+- `git push <remote> <local branch>:<remote branch>`：把 object 傳到遠端，並更新遠端 reference
+- `git branch --set-upstream-to=<remote>/<remote branch>`：設定本地分支與遠端分支的對應關係
+- `git fetch`：從遠端抓取 object／reference
+- `git pull`：等同 `git fetch; git merge`
+- `git clone`：從遠端下載儲存庫
 
-## Undo
+## 還原（Undo）
 
-- `git commit --amend`: edit a commit's contents/message
-- `git reset <file>`: unstage a file
-- `git restore`: discard changes
+- `git commit --amend`：修改某個 commit 的內容／訊息
+- `git reset <file>`：把檔案從暫存區移除（unstage）
+- `git restore`：捨棄變更
 
-# Advanced Git
+# 進階 Git
 
-- `git config`: Git is [highly customizable](https://git-scm.com/docs/git-config)
-- `git clone --depth=1`: shallow clone, without entire version history
-- `git add -p`: interactive staging
-- `git rebase -i`: interactive rebasing
-- `git blame`: show who last edited which line
-- `git stash`: temporarily remove modifications to working directory
-- `git bisect`: binary search history (e.g. for regressions)
-- `git revert`: create a new commit that reverses the effect of an earlier commit
-- `git worktree`: check out multiple branches at the same time
-- `.gitignore`: [specify](https://git-scm.com/docs/gitignore) intentionally untracked files to ignore
+- `git config`：Git [高度可自訂](https://git-scm.com/docs/git-config)
+- `git clone --depth=1`：淺層複製，不含完整版本歷史
+- `git add -p`：互動式暫存
+- `git rebase -i`：互動式 rebase
+- `git blame`：顯示每一行最後是誰修改的
+- `git stash`：暫時移除工作目錄中的修改
+- `git bisect`：在歷史中做二分搜尋（例如找出回歸問題）
+- `git revert`：建立新 commit 來反轉較早 commit 的效果
+- `git worktree`：同時 checkout 多個分支
+- `.gitignore`：用來[指定](https://git-scm.com/docs/gitignore)要忽略、且刻意不追蹤的檔案
 
-# Miscellaneous
+# 其他補充
 
-- **GUIs**: there are many [GUI clients](https://git-scm.com/downloads/guis)
-out there for Git. We personally don't use them and use the command-line
-interface instead.
-- **Shell integration**: it's super handy to have a Git status as part of your
-shell prompt ([zsh](https://github.com/olivierverdier/zsh-git-prompt),
-[bash](https://github.com/magicmonty/bash-git-prompt)). Often included in
-frameworks like [Oh My Zsh](https://github.com/ohmyzsh/ohmyzsh).
-- **Editor integration**: similarly to the above, handy integrations with many
-features. [fugitive.vim](https://github.com/tpope/vim-fugitive) is the standard
-one for Vim.
-- **Workflows**: we taught you the data model, plus some basic commands; we
-didn't tell you what practices to follow when working on big projects (and
-there are [many](https://nvie.com/posts/a-successful-git-branching-model/)
-[different](https://www.endoflineblog.com/gitflow-considered-harmful)
-[approaches](https://www.atlassian.com/git/tutorials/comparing-workflows/gitflow-workflow)).
-- **GitHub**: Git is not GitHub. GitHub has a specific way of contributing code
-to other projects, called [pull
-requests](https://help.github.com/en/github/collaborating-with-issues-and-pull-requests/about-pull-requests).
-- **Other Git providers**: GitHub is not special: there are many Git repository
-hosts, like [GitLab](https://about.gitlab.com/) and
-[BitBucket](https://bitbucket.org/).
+- **GUI**：Git 有很多 [GUI client](https://git-scm.com/downloads/guis)。我們個人不太用，通常還是使用命令列介面。
+- **Shell 整合**：把 Git 狀態顯示在 shell prompt 上非常方便（[zsh](https://github.com/olivierverdier/zsh-git-prompt)、[bash](https://github.com/magicmonty/bash-git-prompt)）。像 [Oh My Zsh](https://github.com/ohmyzsh/ohmyzsh) 這類框架通常都內建。
+- **編輯器整合**：和上面類似，也有很多實用整合功能。對 Vim 來說，[fugitive.vim](https://github.com/tpope/vim-fugitive) 是標準選擇。
+- **工作流程**：我們教了資料模型與一些基本指令，但沒有規定你在大型專案中一定要採用哪種實務流程（而且其實有[很多](https://nvie.com/posts/a-successful-git-branching-model/)[不同](https://www.endoflineblog.com/gitflow-considered-harmful)[做法](https://www.atlassian.com/git/tutorials/comparing-workflows/gitflow-workflow)）。
+- **GitHub**：Git 不是 GitHub。GitHub 有一套將程式碼貢獻到其他專案的方法，叫做 [pull requests](https://help.github.com/en/github/collaborating-with-issues-and-pull-requests/about-pull-requests)。
+- **其他 Git 服務商**：GitHub 並不特別，還有很多 Git 儲存庫託管服務，例如 [GitLab](https://about.gitlab.com/) 與 [BitBucket](https://bitbucket.org/)。
 
-# Resources
+# 學習資源
 
-- [Pro Git](https://git-scm.com/book/en/v2) is **highly recommended reading**.
-Going through Chapters 1--5 should teach you most of what you need to use Git
-proficiently, now that you understand the data model. The later chapters have
-some interesting, advanced material.
-- [Oh Shit, Git!?!](https://ohshitgit.com/) is a short guide on how to recover
-from some common Git mistakes.
-- [Git for Computer
-Scientists](https://eagain.net/articles/git-for-computer-scientists/) is a
-short explanation of Git's data model, with less pseudocode and more fancy
-diagrams than these lecture notes.
-- [Git from the Bottom Up](https://jwiegley.github.io/git-from-the-bottom-up/)
-is a detailed explanation of Git's implementation details beyond just the data
-model, for the curious.
-- [How to explain git in simple
-words](https://smusamashah.github.io/blog/2017/10/14/explain-git-in-simple-words)
-- [Learn Git Branching](https://learngitbranching.js.org/) is a browser-based
-game that teaches you Git.
+- [Pro Git](https://git-scm.com/book/en/v2) 是**非常推薦**的讀物。既然你已經理解資料模型，讀完第 1～5 章，基本上就能掌握熟練使用 Git 所需的大部分能力。後面章節也有不少有趣的進階內容。
+- [Oh Shit, Git!?!](https://ohshitgit.com/) 是一份短指南，教你如何從常見 Git 錯誤中復原。
+- [Git for Computer Scientists](https://eagain.net/articles/git-for-computer-scientists/) 也簡要說明了 Git 的資料模型，和本講義相比，偽程式碼更少、圖更豐富。
+- [Git from the Bottom Up](https://jwiegley.github.io/git-from-the-bottom-up/) 針對有興趣深入的人，詳細解釋了資料模型之外 Git 的實作細節。
+- [How to explain git in simple words](https://smusamashah.github.io/blog/2017/10/14/explain-git-in-simple-words)
+- [Learn Git Branching](https://learngitbranching.js.org/) 是一個在瀏覽器中進行、可學習 Git 的遊戲。
 
-# Exercises
+# 練習
 
-1. If you don't have any past experience with Git, either try reading the first
-   couple chapters of [Pro Git](https://git-scm.com/book/en/v2) or go through a
-   tutorial like [Learn Git Branching](https://learngitbranching.js.org/). As
-   you're working through it, relate Git commands to the data model.
-1. Clone the [repository for the
-class website](https://github.com/missing-semester/missing-semester).
-    1. Explore the version history by visualizing it as a graph.
-    1. Who was the last person to modify `README.md`? (Hint: use `git log` with
-       an argument).
-    1. What was the commit message associated with the last modification to the
-       `collections:` line of `_config.yml`? (Hint: use `git blame` and `git
-       show`).
-1. One common mistake when learning Git is to commit large files that should
-   not be managed by Git or adding sensitive information. Try adding a file to
-   a repository, making some commits and then deleting that file from _history_
-   (not just the latest commit). You may want to look at
-   [this](https://help.github.com/articles/removing-sensitive-data-from-a-repository/).
-1. Clone some repository from GitHub, and modify one of its existing files.
-   What happens when you do `git stash`? What do you see when running `git log
-   --all --oneline`? Run `git stash pop` to undo what you did with `git stash`.
-   In what scenario might this be useful?
-1. Like many command line tools, Git provides a configuration file (or dotfile)
-   called `~/.gitconfig`. Create an alias in `~/.gitconfig` so that when you
-   run `git graph`, you get the output of `git log --all --graph --decorate
-   --oneline`. You can do this by directly
-   [editing](https://git-scm.com/docs/git-config#Documentation/git-config.txt-alias)
-   the `~/.gitconfig` file, or you can use the `git config` command to add the
-   alias. Information about git aliases can be found
-   [here](https://git-scm.com/book/en/v2/Git-Basics-Git-Aliases).
-1. You can define global ignore patterns in `~/.gitignore_global` after running
-   `git config --global core.excludesfile ~/.gitignore_global`. This sets the
-   location of the global ignore file that Git will use, but you still need to
-   manually create the file at that path. Set up your global gitignore file to
-   ignore OS-specific or editor-specific temporary files, like `.DS_Store`.
-1. Fork the [repository for the class
-   website](https://github.com/missing-semester/missing-semester), find a typo
-   or some other improvement you can make, and submit a pull request on GitHub
-   (you may want to look at [this](https://github.com/firstcontributions/first-contributions)).
-   Please only submit PRs that are useful (don't spam us, please!). If you
-   can't find an improvement to make, you can skip this exercise.
-1. Practice resolving merge conflicts by simulating a collaborative scenario:
-    1. Create a new repository with `git init` and create a file called
-       `recipe.txt` with a few lines (e.g., a simple recipe).
-    1. Commit it, then create two branches: `git branch salty` and `git branch
-       sweet`.
-    1. In the `salty` branch, modify a line (e.g., change "1 cup sugar" to "1
-       cup salt") and commit.
-    1. In the `sweet` branch, modify the same line differently (e.g., change "1
-       cup sugar" to "2 cups sugar") and commit.
-    1. Now switch to `master` and try `git merge salty`, then `git merge
-       sweet`. What happens? Look at the contents of `recipe.txt` - what do the
-       `<<<<<<<`, `=======`, and `>>>>>>>` markers mean?
-    1. Resolve the conflict by editing the file to keep the content you want,
-       removing the conflict markers, and completing the merge with `git add`
-       and `git commit` (or `git merge --continue`). Alternatively, try using
-       `git mergetool` to resolve the conflict with a graphical or
-       terminal-based merge tool.
-    1. Use `git log --graph --oneline` to visualize the merge history you just
-       created.
+1. 如果你以前沒有 Git 經驗，可以先讀 [Pro Git](https://git-scm.com/book/en/v2) 前幾章，或做像 [Learn Git Branching](https://learngitbranching.js.org/) 這樣的教學。在練習過程中，試著把 Git 指令和資料模型對應起來。
+1. 複製（clone）[課程網站的儲存庫](https://github.com/missing-semester/missing-semester)。
+    1. 把版本歷史畫成圖來探索它。
+    1. 最後修改 `README.md` 的人是誰？（提示：`git log` 可以加參數）
+    1. `_config.yml` 中 `collections:` 那一行最後一次修改所對應的 commit 訊息是什麼？（提示：用 `git blame` 與 `git show`）
+1. 學 Git 常見錯誤之一，是把不該由 Git 管理的大檔案提交，或把敏感資訊加進去。試著在儲存庫裡加入一個檔案、做幾次 commit，然後把那個檔案從 _歷史_ 中刪掉（不只是最新 commit）。你可以參考[這篇](https://help.github.com/articles/removing-sensitive-data-from-a-repository/)。
+1. 從 GitHub 複製（clone）任一儲存庫，修改其中一個既有檔案。執行 `git stash` 會發生什麼？執行 `git log --all --oneline` 會看到什麼？再用 `git stash pop` 還原你剛剛 `git stash` 做的事。這在什麼情境下有用？
+1. 和許多命令列工具一樣，Git 也有設定檔（dotfile），叫做 `~/.gitconfig`。在 `~/.gitconfig` 建立一個 alias，讓你執行 `git graph` 時，得到 `git log --all --graph --decorate --oneline` 的輸出。你可以直接[編輯](https://git-scm.com/docs/git-config#Documentation/git-config.txt-alias) `~/.gitconfig`，或用 `git config` 指令新增 alias。關於 git alias 的資訊可見[這裡](https://git-scm.com/book/en/v2/Git-Basics-Git-Aliases)。
+1. 執行 `git config --global core.excludesfile ~/.gitignore_global` 後，你可以在 `~/.gitignore_global` 定義全域忽略規則。這只會設定 Git 使用的全域忽略檔位置，你仍然需要手動在該路徑建立檔案。請設定你的全域 gitignore，忽略作業系統或編輯器產生的暫存檔，例如 `.DS_Store`。
+1. Fork [課程網站儲存庫](https://github.com/missing-semester/missing-semester)，找一個 typo 或其他可改進之處，然後在 GitHub 提交 pull request（可參考[這個](https://github.com/firstcontributions/first-contributions)）。請只提交有幫助的 PR（拜託不要洗版）。如果找不到可改進的地方，也可以跳過這題。
+1. 模擬協作情境，練習解決 merge 衝突：
+    1. 用 `git init` 建立新儲存庫，並建立名為 `recipe.txt` 的檔案，寫入幾行內容（例如簡單食譜）。
+    1. 先 commit，接著建立兩個分支：`git branch salty` 與 `git branch sweet`。
+    1. 在 `salty` 分支修改其中一行（例如把 "1 cup sugar" 改成 "1 cup salt"）並 commit。
+    1. 在 `sweet` 分支把同一行改成不同內容（例如把 "1 cup sugar" 改成 "2 cups sugar"）並 commit。
+    1. 現在切回 `master`，先試 `git merge salty`，再試 `git merge sweet`。會發生什麼？看看 `recipe.txt` 內容，`<<<<<<<`、`=======`、`>>>>>>>` 這些標記代表什麼？
+    1. 編輯檔案保留你想要的內容、移除衝突標記，然後用 `git add` 與 `git commit`（或 `git merge --continue`）完成合併。你也可以試試 `git mergetool`，用圖形化或終端機 merge 工具解衝突。
+    1. 使用 `git log --graph --oneline` 視覺化你剛建立的合併歷史。

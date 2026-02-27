@@ -1,8 +1,8 @@
 ---
 layout: lecture
-title: "Beyond the Code"
+title: "不只程式碼"
 description: >
-  Learn about essential soft skills including documentation, open-source community norms, and AI etiquette.
+  學習文件撰寫、開源社群協作規範與 AI 使用禮儀等關鍵軟實力。
 thumbnail: /static/assets/thumbnails/2026/lec8.png
 date: 2026-01-22
 ready: true
@@ -11,408 +11,277 @@ video:
   id: 2DOEATfXT8k
 ---
 
-Being a good software engineer isn't just about writing code that
-works. It's about writing code that others (including future you) can
-understand, maintain, and build upon. It's about communicating
-clearly, contributing thoughtfully, and being a good citizen in the
-ecosystems you participate in—whether open source or proprietary.
+成為優秀的軟體工程師，不只是在寫「能跑」的程式碼。更重要的是寫出
+別人（包含未來的你）能理解、維護、延伸的程式碼。這也關乎清楚溝通、
+有思考地貢獻，以及在你參與的生態系中成為好的協作者——不管是開源或
+商業閉源環境都一樣。
 
-# One-way communication
+# 單向溝通
 
-Much of software engineering involves writing for people who lack your
-current context: teammates who join later, maintainers who inherit
-your code, or yourself in six months when you've forgotten why you
-made a particular choice. A key piece of advice for all this kind of
-writing is that your goal is to capture and convey the *why*, not just
-the *what*. The what tends to be self-explanatory, while the *why* is
-hard-earned knowledge that is easily lost to time.
+軟體工程有很大一部分，是在為「沒有你目前脈絡」的人寫東西：之後才加入
+的同事、接手你程式碼的維護者，或六個月後已經忘記當初決策原因的你自己。
+這類寫作最重要的原則是：目標是記錄並傳達 *why*，而不只是 *what*。
+*what* 常常從程式本身就看得出來；*why* 則是你花時間踩坑才累積的知識，
+最容易被時間沖淡。
 
-Perhaps the most common form of engineer-to-engineer communication
-(apart from the code itself) is code comments. I've personally found
-that a lot of code comments are useless. But they don't have to be! Good
-comments explain things that the code itself cannot: *why* something is
-done a particular way, not *how* it works (which is what the code
-shows). They can save hours of confusion, while bad comments add noise
-or, worse, mislead.
+工程師之間最常見的溝通方式之一（除了程式碼本身）就是註解。我自己常看到
+很多註解其實沒幫助，但它們不一定得這樣！好的註解會補上程式本身無法表達
+的事：為什麼要這樣做，而不是它怎麼運作（那是程式本身會呈現的）。好的註解
+可以省下數小時的困惑；壞註解則只會增加噪音，甚至誤導。
 
-Types of comments that are nearly always worthwhile:
+幾乎都值得寫的註解類型：
 
-- **TODOs**: Mark incomplete or unpolished code, but leave enough
-  context for someone else to understand what's outstanding and why it
-  was deferred. "TODO: optimize" is useless; "TODO: this O(n²) loop is
-  fine for `n<100`, but will need indexing if we scale" is actionable.
-- **References**: Link to external sources when code implements an
-  algorithm from a paper, adapts code from elsewhere, or encodes
-  behaviour specified in documentation. Use permalinks. Note any
-  divergences from the reference.
-- **Correctness arguments**: Explain *why* non-trivial code produces
-  correct results. The code shows the steps; a comment explains why
-  those steps work.
-- **Hard-learned lessons**: If you spent 30+ minutes debugging something
-  and the fix is a non-obvious incantation, document it. Your past self
-  didn't realize it was needed; future readers won't either.
-- **Rationale for constants**: Magic numbers deserve explanation. Why
-  1492? Why 16 bits? Was it chosen randomly, derived from testing, or
-  required for correctness? Even "chosen arbitrarily" is useful
-  information.
-- **Load-bearing choices**: If correctness depends on a
-  seemingly-innocent implementation detail (e.g., "must be a BTreeSet
-  because iteration order matters below"), call it out explicitly.
-- **"Why not"s**: When you deliberately avoid the obvious approach,
-  explain why. Otherwise someone will "fix" it later and break things.
+- **TODO**：標記尚未完成或尚未打磨好的程式碼，但要留下足夠脈絡，讓別人知道
+  還缺什麼、為什麼當下先延後。「TODO: optimize」幾乎沒價值；像
+  「TODO: 這個 O(n²) 迴圈在 `n<100` 時可接受，但規模放大後需要加索引」
+  就可執行得多。
+- **參考來源**：當程式實作論文演算法、改寫他處程式，或落實文件規範行為時，
+  請附外部來源連結。建議用永久連結（permalink），並註明與原始參考有何差異。
+- **正確性說明**：解釋非平凡程式碼為什麼是對的。程式碼呈現的是步驟；
+  註解補充的是步驟為何成立。
+- **踩坑心得**：若你花了 30 分鐘以上除錯，才找到一個不直覺但必要的「咒語式」
+  修正，請記錄下來。當年的你都不會預期它必要，未來讀者更不會。
+- **常數決策理由**：魔術數字值得解釋。為什麼是 1492？為什麼是 16 bits？
+  是隨機選的、測試導出的，還是正確性要求？就算是「隨便選的」也很有資訊價值。
+- **承重型選擇**：如果正確性仰賴某個看似無害的實作細節（例如「下面邏輯依賴
+  迭代順序，所以這裡必須用 BTreeSet」），請明確寫出來。
+- **「為何不」註解**：當你刻意不採用看似直覺的作法，請說明原因。否則之後很容易
+  有人「好心修正」然後把東西弄壞。
 
-READMEs (you have one, right?) are also a common first touch-point with
-other developers. A good one answers four questions immediately: What
-does this do? Why should I care? How do I use it? How do I install it?
-In that order. Structure it like a funnel: a one-liner and maybe a
-visual demo at the top so someone can decide in seconds if this solves
-their problem, then progressively add depth. Show usage before
-installation — people want to see what they're getting before committing
-to setup steps.
+README（你有寫吧？）也是其他開發者常見的第一接觸點。一份好的 README 應該
+立刻回答四個問題：這是做什麼的？我為什麼要在意？怎麼用？怎麼安裝？
+而且順序就照這樣。結構可像漏斗：最上方先放一句話摘要，必要時加視覺化示範，
+讓人幾秒內判斷這是否解決他的問題，再逐層加深內容。也建議先展示用法再講安裝——
+多數人會想先看到成果，再決定要不要投入設定成本。
 
-Commit messages are another kind of "writing for others" that is often
-neglected. They are often written as "fixed blah" or "added foo", and
-while that may be sufficient in some cases, it's easy to forget that
-they form the historical record of *why* the codebase evolved the way it
-did. When someone (including you!) runs `git blame` trying to understand
-a confusing change, good commit messages should give them answers.
+Commit 訊息是另一種常被忽略的「為他人而寫」。很多訊息只寫成「fixed blah」、
+「added foo」，某些情境也許夠用，但別忘了 commit 訊息其實是記錄程式碼庫
+如何演進的 *why* 歷史。當某人（包含你自己！）用 `git blame` 想搞懂一段難懂
+變更時，好的 commit 訊息應該能給出答案。
 
-In general, the body should answer:
-- What problem forced this change?
-- What alternatives did you consider?
-- What are the trade-offs or implications?
-- What might be surprising about this approach?
+一般來說，commit 內文應回答：
+- 什麼問題迫使你做這個變更？
+- 你考慮過哪些替代方案？
+- 這個作法的取捨與影響是什麼？
+- 這個作法有哪些可能令人意外之處？
 
-> Obviously you should scale detail with complexity. A one-line typo fix
-> needs only a subject. A subtle race condition fix that took hours to
-> debug deserves paragraphs explaining the problem and solution.
+> 細節量當然要跟複雜度成比例。修一個一行 typo，只要主旨就好；但如果是花數小時
+> 才抓到的微妙 race condition，就值得用數段文字說清楚問題與解法。
 
-For complex changes, it can be useful to follow a Problem → Solution →
-Implications structure: Start with the forcing function or limitation,
-then explain what changed and the key design decisions, and then list
-noteworthy consequences (positive and negative). That last part is
-particularly important; real engineering involves balancing concerns,
-and documenting that a trade-off was intentional prevents future
-developers from thinking you missed the problem.
+對於複雜變更，採用 Problem → Solution → Implications 結構通常很有幫助：
+先交代驅動變更的限制或問題，再說明做了哪些改動與關鍵設計決策，最後列出
+值得注意的結果（正面與負面）。最後一段尤其重要；真正的工程通常是各方權衡，
+把「這是有意識的取捨」寫清楚，能避免後人誤以為你漏看了問題。
 
-LLMs _can_ be helpful in writing commit messages. However, if you simply
-point one at your change and ask it to write the commit message for the
-change, the LLM will only have access to the _what_, not the _why_. And
-the resulting commit message will thus be mostly descriptive (the
-opposite of what we want!). If you used an LLM to help you make the
-change in the first place, asking the LLM to write the commit in that
-same session can be a much better option since your conversation with
-the LLM is inherently a rich source of context about the change!
-Otherwise, or in addition, a useful trick is to specifically tell the
-LLM you'd like a commit message focused on the "why" (and other nuances
-from the notes above), and then _tell it to query you for missing
-context_. Essentially, you're acting like a MCP "tool" for the coding
-agent that it can use to "read" context.
+LLM _可以_協助寫 commit 訊息。但如果你只是把 diff 丟給它，叫它幫你寫，
+LLM 通常只看得到 _what_，看不到 _why_。結果往往會變成純描述式訊息
+（剛好是我們最不想要的）。如果你本來就用 LLM 協助完成這次改動，那在同一個
+對話裡請它寫 commit，通常會好很多，因為先前對話本身就是豐富脈絡來源！
+此外（或搭配使用）的一個實用技巧是：明確告訴 LLM 你要的是聚焦在「why」
+的 commit 訊息（也可包含上面提到的細節），並且_要求它主動追問缺失脈絡_。
+某種程度上，你是在扮演可供代理讀取脈絡的 MCP「工具」。
 
-As your changes get more complex, make sure to also break up commits
-logically (`git add -p` is your friend). Each commit should represent
-one coherent change that could be understood and reviewed independently.
-Don't mix refactoring with new features or combine unrelated bug fixes,
-as this muddies the story for which changes fixed what problem, and will
-almost certainly slow down the eventual review of your changes. It also
-gives you superpowers through `git bisect`, but that's a story for
-another time.
+當改動變得更複雜，記得把 commit 做邏輯切分（`git add -p` 是你的好夥伴）。
+每個 commit 應代表一個可獨立理解、可獨立審查的完整變更。不要把重構和新功能
+混在一起，也不要把無關 bug 修正在同一筆提交，否則很難追溯「哪個變更修了哪個
+問題」，幾乎一定會拖慢後續審查。做好切分也會讓 `git bisect` 變得超強，但那是
+另一段故事了。
 
-> One note as you start being more diligent about technical writing, and
-> using it more extensively, make sure you respect the reader. It's easy
-> to end up over-explaining once you start, but you have to resist that
-> urge lest the reader read _none_ of what you've written. Explain the
-> "why" and trust them to figure out the "how" for their situation.
+> 當你開始更認真做技術寫作、也寫得更頻繁時，有一件事很重要：尊重讀者。人一旦
+> 開始寫很容易過度解釋，但你要克制，不然讀者可能乾脆什麼都不看。說清楚「why」，
+> 然後相信讀者有能力在自己的情境推導「how」。
 
-# Collaboration
+# 協作
 
-As engineers, we may spend a large part of our job coding at our own
-keyboard, but a sizeable chunk of our time is also taken up by
-communicating with others. That time is usually split into collaboration
-and education, and the payoff from investing in getting better at both is
-significant.
+身為工程師，我們工作中確實有很大一部分是在自己鍵盤前寫程式，但也有不小比例
+的時間花在與他人溝通。這些時間大致可分成「協作」與「教學／學習」，而在兩者上
+刻意投入、持續精進，回報通常都很可觀。
 
-## Contributing
+## 貢獻
 
-Whether you are submitting a bug report, contributing a simple bug fix,
-or implementing a huge feature, it's worth keeping in mind that there
-are usually orders of magnitude more users than there are contributors,
-and an order of magnitude more contributors than there are maintainers.
-As a result, maintainer time is highly oversubscribed. If you want to
-increase the likelihood that your contribution goes somewhere
-productive, you have to ensure that your contributions carry a high
-signal-to-noise ratio and are worth the maintainers' time.
+不管你是在提交 bug 回報、貢獻小型修正，還是實作大型功能，都值得先記住：
+通常使用者數量會比貢獻者多好幾個數量級，而貢獻者又比維護者多一個數量級。
+因此，維護者時間幾乎永遠超載。若你希望自己的貢獻能有效被推進，就必須確保
+你的內容「訊號高、噪音低」，值得維護者投入時間。
 
-For example, a good bug report respects the maintainer's time by
-providing everything needed to understand and reproduce the problem:
+例如，一份好的 bug 回報會尊重維護者時間，提供理解與重現問題所需的完整資訊：
 
-- **Environment**: OS, version numbers, relevant configuration
-- **What you expected** vs **what actually happened**
-- **Steps to reproduce**: Be specific. "Click the button" is less useful
-  than "Click the Submit button on the /settings page while logged in as
-  an admin."
-- **What you've already tried**: This prevents duplicate suggestions and
-  shows you've done some investigation
+- **執行環境**：作業系統、版本、相關設定
+- **預期結果** vs **實際結果**
+- **重現步驟**：越具體越好。「按那個按鈕」遠不如
+  「以管理員身分登入後，在 `/settings` 頁面按 Submit」。
+- **你已嘗試過什麼**：可避免重複建議，也能顯示你已先做過基本調查
 
-> If you find a security vulnerability, don't post it publicly. Contact
-> the maintainers privately first and give them reasonable time to fix
-> it before disclosure. Many projects have a SECURITY.md file or
-> similar for this purpose.
+> 如果你發現安全漏洞，不要直接公開。請先私下聯絡維護者，給他們合理時間修補後
+> 再揭露。許多專案會用 `SECURITY.md`（或類似文件）說明這個流程。
 
-**Make sure you search for existing issues.** Your bug or feature
-request may already be reported, and it's far better to add information
-to existing discussions rather than creating duplicates. Not to mention,
-it reduces noise for the maintainers.
+**務必先搜尋既有 issue。** 你的 bug 或功能需求可能早就有人提過了。比起重開
+重複議題，把補充資訊加進既有討論通常更好，也能降低維護者噪音負擔。
 
-Minimal reproducible examples are gold, if you can come up with one.
-They save the maintainer a huge amount of time and effort, and
-reliably reproducing the bug is often the hardest part of fixing it. Not
-to mention, the effort you put into isolating the problem often helps
-you understand it better too, and sometimes leads you to find a fix
-yourself.
+如果你能提供最小可重現範例（minimal reproducible example），那幾乎是黃金級資訊。
+這能替維護者省下大量時間與心力，而且穩定重現 bug 往往就是修正過程中最困難的一步。
+另外，你在隔離問題時投入的功夫，也常會反過來幫助你更理解問題，甚至自己先找到解法。
 
-If you don't hear back right away, keep in mind that maintainers are
-often volunteers with limited time. If you're waiting for a reply from
-them, a polite follow-up after a couple weeks is fine; daily pings are
-not. Similarly, "me too" comments, or bug reports that are just a
-copy-paste of some terminal output tend to be a net-negative in terms of
-getting traction for your issue.
+如果你沒有立刻收到回覆，請記得維護者常是時間有限的志工。等待回覆時，隔幾週
+禮貌追問一次可以，但每天 ping 就不太好。同樣地，純粹「me too」留言，或只是
+貼一段終端機輸出卻缺乏脈絡的 bug 回報，通常對推動問題進展是負分。
 
-If you're looking to make a code contribution, you'll also want to
-familiarize yourself with the contribution guidelines. Many projects
-have a `CONTRIBUTING.md` — follow it. You'll also usually want to start
-small; a typo fix or documentation improvement is a great first
-contribution as it helps you learn the project's processes without also
-having to go through lots of back and forth on the content.
+若你想做程式碼貢獻，也要先熟悉專案的貢獻規範。許多專案都有 `CONTRIBUTING.md`，
+請照著做。通常也建議從小處開始：修 typo 或改文件都是很好的第一筆貢獻，能讓你
+先熟悉專案流程，而不用一開始就在內容本身來回反覆討論太多輪。
 
-> Check what license the project uses, as any code you contribute will
-> fall under the same license. In particular, look out for copyleft
-> licenses (like GPL), which requires derivatives to also be open source
-> and may have implications for your employer if you touch it!
-> [choosealicense.com](https://choosealicense.com/) has more useful
-> information.
+> 記得確認專案使用的授權條款，因為你提交的程式碼也會落在同一授權下。特別要留意
+> copyleft（例如 GPL）授權：它要求衍生作品也要開源，若你在工作上接觸此類程式碼，
+> 可能對雇主產生影響。可參考 [choosealicense.com](https://choosealicense.com/)。
 
-When you've decided to open a pull request ("PR"), first make sure you
-isolate the change you actually want to be accepted. If your PR changes
-lots of other unrelated things at the same time, chances are the
-reviewer will send it back to you asking you to clean it up. This is
-similar to how you should break down your git commits into semantically
-related chunks.
+當你決定開 pull request（PR）時，第一步是先把你真正想被接受的改動隔離清楚。
+若 PR 同時夾帶很多無關變更，審查者很可能會退回請你先整理。這跟 commit 切分
+原則一樣：要切成語意上彼此相關的區塊。
 
-In some cases, if you have many seemingly-disparate changes but
-they're all needed to enable one feature, it may be okay to open a
-larger PR that captures all the changes. However, in this case, commit
-hygiene is particularly important so that maintainers have the option
-to review the change "commit by commit".
+某些情況下，你可能有許多看似分散的改動，但全部都是為了同一個功能不可或缺；
+這時開比較大的 PR 也未必不行。不過在這種情境下，commit 衛生特別重要，讓維護者
+能選擇以「逐 commit」方式審查。
 
-Next, make sure you explain the "why" behind the change well. Don't just
-describe _what_ changed — explain _why_ the change is needed and _why_
-this is a good way to address the problem. You should also proactively
-call out parts of the change that warrant special attention in the
-review, if any. Depending on `CONTRIBUTING.md` and the nature of your
-change, reviewers may also expect to see additional information like
-trade-offs you made or how to test the change.
+接著，務必把改動背後的「why」講清楚。不要只描述改了 _what_，要解釋為什麼
+需要這個變更、以及為什麼這是解決問題的好方式。若某些區塊在審查時需要特別留意，
+也應主動標註。依 `CONTRIBUTING.md` 規範與改動性質不同，審查者也可能期待看到
+額外資訊，例如你做過的取捨、或如何測試此變更。
 
-> We recommend contributing back to upstream projects rather than
-> "forking" the project, at least as a first approach. Forking (license
-> permitting) should be reserved for when the contributions you want to
-> make are out of scope for the original project. If you do fork, make
-> sure you acknowledge the original project!
+> 我們建議第一優先先回饋給上游專案，而不是直接 fork。Fork（在授權允許下）
+> 較適合用在你想做的貢獻已超出原專案範疇時。若你真的 fork，請務必致謝原專案！
 
-AI makes it incredibly easy to generate plausible-looking code and PRs
-quickly, but this doesn't excuse you from understanding what you're
-contributing. Submitting AI-generated code you can't explain burdens
-maintainers with reviewing and potentially maintaining code that even
-its author doesn't understand. It's fine to use AI to help you
-identify issues and produce fixes/features, **so long as you still do
-the due diligence** to polish it into a worthwhile contribution, rather
-than passing that work on to the (already-overloaded) maintainers.
+AI 讓你能非常快速地產生看起來「像樣」的程式碼與 PR，但這不代表你可以不理解
+自己提交的內容。若你提交了連自己都說不清楚的 AI 產生程式碼，就等於把審查與未來
+維護負擔丟給維護者。用 AI 幫你找問題、產生修正或功能都可以，**前提是你仍要做完
+應盡的查核與打磨**，把它整理成真正有價值的貢獻，而不是把這份工作轉嫁給（已經超載的）
+維護者。
 
-Remember that for maintainers, accepting a PR means accepting long-term
-responsibility. They will be maintaining this code long after the
-contributor has moved on, and so may decline changes that are
-well-intentioned but don't fit the project's direction, add complexity
-they don't want to maintain, or where the need simply isn't sufficiently
-well-documented. It's on _you_ as the contributor to make the case for
-why the accepting the contribution is worth the maintenance burden.
+請記住：對維護者來說，接受一個 PR 代表接受長期責任。貢獻者離開之後，仍是維護者
+要持續維護這份程式碼。因此即便你出發點很好，他們也可能拒絕不符合專案方向、引入
+他們不想承擔的複雜度，或需求說明不足的改動。身為貢獻者，_你_ 要負責把論證做好，
+說服大家為何這份貢獻值得相應的維護成本。
 
-> When receiving feedback on a PR, remember that your code is not you!
-> Reviewers are trying to make the code better, not criticizing you
-> personally. Ask clarifying questions if you disagree — you might learn
-> something, or maybe they will.
+> 收到 PR 回饋時，請記得「你的程式碼不是你本人」！審查者是在讓程式更好，不是
+> 在針對你個人。若你不同意，請用釐清問題的方式討論——你可能學到新東西，對方也可能。
 
-## Reviewing
+## 審查
 
-You might think code review is something senior developers do, but
-you'll likely be asked to review code much earlier than you expect, and
-your perspective is valuable. Fresh eyes catch things that experienced
-developers overlook, and questions from someone less familiar with the
-code often reveal assumptions that should be documented or simplified.
+你可能會以為 code review 是資深工程師才做的事，但你通常會比想像中更早被邀請參與，
+而你的視角很有價值。新鮮視角常能看見資深開發者忽略的問題；對程式較不熟的人提出
+的問題，也常揭露那些其實應該被寫進文件或進一步簡化的隱性假設。
 
-Review is also one of the fastest ways to learn. You'll see how others
-approach problems, pick up patterns and idioms, and develop intuition
-for what makes code readable. Beyond personal growth, reviews catch bugs
-before they reach production, spread knowledge across the team, and
-improve code quality through collaboration. They are not merely
-bureaucratic overhead.
+審查也是成長最快的方式之一。你會看到別人如何拆解問題、學到慣用模式與寫法，
+並建立「什麼讓程式更可讀」的直覺。除了個人成長，審查還能在上線前攔下 bug、
+讓知識在團隊中擴散，並透過協作提升程式品質。它不是官僚流程而已。
 
-Good code review is a skill you need to hone over time, but there are
-some tips that can make them much better much faster:
+好的 code review 是需要長期練習的技能，但以下做法可以讓你更快做得更好：
 
-- **Review the code, not the person**:
-  "This function is confusing" vs "You wrote confusing code."
-- **Prefer actionable comments**:
-  "Can you replace these globals with a config dataclass" is an easier
-  comment to address than "Don't use globals here"
-- **Ask questions rather than making demands**:
-  "What happens if X is null here?" invites discussion better than
-  "Handle the null case."
-- **Explain the "why"**:
-  "Consider using a constant here" is less useful than "Consider using a
-  constant here so we can easily adjust the timeout based on
-  environment."
-- **Distinguish blocking issues from suggestions**:
-  Be clear about what must change versus what's a matter of preference.
-- **Acknowledge what's good**:
-  Pointing out clever solutions or clean implementations is encouraging
-  and helps the author know what to continue doing.
-- **Know when to stop**:
-  Contributors only have so much time and patience, and it's not always
-  best spent handling all the nits. Focus on the big things, and
-  consider tidying up nits yourself after the fact.
+- **評的是程式，不是人**：
+  「這個函式有點難理解」比「你寫得很亂」好得多。
+- **評論要可執行**：
+  「可以把這些 global 改成 config dataclass 嗎？」通常比
+  「這裡不要用 global」更容易採取行動。
+- **多問問題，少下命令**：
+  「如果 X 是 null，這裡會怎樣？」通常比「把 null case 處理掉」更能引導有效討論。
+- **解釋為什麼**：
+  「考慮改用常數」不如
+  「考慮改用常數，之後我們才能依環境快速調整 timeout」來得有幫助。
+- **區分阻斷性問題與建議**：
+  清楚說明哪些一定要改、哪些只是偏好差異。
+- **肯定做得好的地方**：
+  點出巧妙解法或乾淨實作，能鼓勵作者，也幫他知道哪些作法值得延續。
+- **知道何時該停**：
+  貢獻者的時間與耐心有限，不一定該花在所有小毛邊。優先抓大問題，
+  小細節有時可以在後續自行幫忙整理。
 
-> AI tools can catch certain issues, but they're not a substitute for
-> human review. They miss context, don't understand product
-> requirements, and can confidently suggest wrong things. They're worth
-> using as a first pass, but not a replacement for thoughtful human
-> review.
+> AI 工具可以抓到部分問題，但不能取代人工審查。它們會漏脈絡、不懂產品需求，
+> 也可能很有自信地給出錯誤建議。拿來做第一輪篩查很值得，但不能取代有思考的人類審查。
 
-# Education
+# 教學與學習
 
-A lot of our non-coding time as engineers is spent either asking or
-answering questions, possibly a mixture of both; during collaboration,
-in dialogue with peers, or while trying to learn. Asking good questions
-is a skill that makes you better at learning from anyone, not just
-perfect explainers. Julia Evans has some excellent blog posts on "[How
-to ask good questions](https://jvns.ca/blog/good-questions/)" and "[How
-to get useful answers to your
-questions](https://jvns.ca/blog/2021/10/21/how-to-get-useful-answers-to-your-questions/)"
-that are worth reading.
+工程師不寫程式的時間，很多都在提問或回答問題（有時兩者同時發生），可能是
+協作時、與同儕討論時，或在學習新事物時。會問好問題是一項關鍵能力，能讓你
+更會向各種人學習，而不只依賴「很會教的人」。Julia Evans 有兩篇很棒的文章：
+「[How to ask good questions](https://jvns.ca/blog/good-questions/)」與
+「[How to get useful answers to your questions](https://jvns.ca/blog/2021/10/21/how-to-get-useful-answers-to-your-questions/)」，
+很值得一讀。
 
-Some particularly valuable pieces of advice are:
+其中幾個特別實用的建議：
 
-- **State your understanding first**: Say what you think you know and
-  ask "is that right?" This helps the answerer identify your actual
-  knowledge gaps.
-- **Ask yes/no questions**: "Is X true?" prevents tangential
-  explanations and usually prompts useful elaboration anyway.
-- **Be specific**: "How do SQL joins work?" is too vague. "Does a LEFT
-  JOIN include rows where the right table has no match?" is answerable.
-- **Admit when you don't understand**: Interrupt to ask about unfamiliar
-  terms. This reflects confidence, not weakness. Similarly, if they ask
-  questions of you that you do not know the answer to, it's best to say
-  "I don't know", and possibly follow up with "but I think ..." or even
-  "but I can find out".
-- **Don't accept incomplete answers**: Keep asking follow-ups until you
-  actually understand.
-- **Do some research first**: Basic investigation helps you ask more
-  targeted questions (though casual questions among colleagues are
-  fine).
+- **先說你目前的理解**：先講你認為自己懂了什麼，再問「我這樣理解對嗎？」。
+  這能幫回答者快速定位你真正的知識缺口。
+- **多問可判斷題**：像「X 是真的嗎？」可避免回答太發散，通常也會自然引出有用延伸。
+- **問題要具體**：「SQL join 怎麼運作？」太廣；
+  「LEFT JOIN 會包含右表沒有對應列的資料嗎？」就更可回答。
+- **不懂就直接說**：遇到陌生術語就打斷提問。這是自信，不是弱點。同樣地，若對方問你
+  你不知道的事，最好直接說「我不知道」，再補上「但我猜...」或「但我可以去查」。
+- **不要接受半套答案**：持續追問，直到你真的理解為止。
+- **先做基本查找**：事前稍微研究，會讓你問出更精準的問題（當然同事間輕鬆提問也很好）。
 
-Remember: well-crafted questions benefit entire communities. They
-surface hidden assumptions that others need to understand too.
+請記得：設計良好的問題會讓整個社群受益。它能把隱性假設浮上檯面，而這些通常
+也是其他人需要理解的內容。
 
-> Note that this advice applies just as much when communicating with
-> LLMs!
+> 這些原則用在和 LLM 溝通時同樣成立！
 
-# AI etiquette
+# AI 使用禮儀
 
-With the growing use of LLMs and AI across software engineering, the
-social and professional norms around are still in flux. We already
-covered many of the tactical considerations in the [agentic coding
-lecture](/2026/agentic-coding/), but there are also "softer" parts of
-their use that are worth discussing.
+隨著 LLM 與 AI 在軟體工程中的使用越來越普遍，相關的社交與職場規範仍在快速演變。
+我們已在[代理式程式開發講座](/2026/agentic-coding/)談過許多戰術層面的注意點，
+但還有一些較「軟性」的使用面向也值得討論。
 
-The first of these is that when AI meaningfully contributed to your
-work, **disclose it**. This isn't about shame — it's about honesty,
-setting appropriate expectations, and ensuring the resulting work gets
-the appropriate level of review. It's also worthwhile to disclose which
-_parts_ you use AI for — there's a meaningful distinction between "this
-whole thing is vibecoded" and "I wrote this backup tool and used an LLM
-to style the web frontend". For example, we've used LLMs to help write
-some of these lecture notes, including proofreading, brainstorming, and
-generating first drafts of code snippets and exercises.
+第一點是：當 AI 對你的工作有實質貢獻時，**要揭露**。這不是羞恥問題，而是誠實、
+設定正確預期，以及確保成果獲得相應程度的審查。也建議進一步說明你是在哪些_部分_
+使用 AI——「這整份都是 vibe code」和「我自己寫了備份工具，只用 LLM 幫前端排版」
+之間有明顯差異。舉例來說，我們也有用 LLM 協助撰寫部分講義內容，包含校稿、腦力激盪，
+以及程式片段與練習題的初稿生成。
 
-You'll also want to follow the norms of the teams and projects you're
-contributing to here. Some teams have stricter policies around the use
-of AI than others (e.g., for compliance or data residency reasons), and
-you don't want to accidentally run afoul of that. Being open about your
-use helps prevent potentially costly mistakes.
+你也需要遵守所屬團隊或專案的規範。有些團隊對 AI 使用政策更嚴格（例如基於合規、
+資料駐留等原因），你不會希望不小心踩線。公開透明地說明你的 AI 使用方式，能避免
+代價高昂的失誤。
 
-> If you're aiming to learn as part of the work you're doing, keep in
-> mind that if you have AI do all or most of the work for you can be
-> self-defeating; you're likely to learn more about prompting (and maybe
-> reviewing AI output) than the task itself. Especially when you're
-> learning, the point may be the journey, not the destination, so using
-> AI to "get the solution quickly" is an anti-goal.
+> 如果你是想在工作中順便學習，要記得：若把全部或大部分工作都交給 AI，可能會
+> 本末倒置。你最後學到的常是怎麼下提示（也許再加一點審查 AI 輸出），而不是任務
+> 本身。尤其在學習階段，重點往往是過程不是終點，所以用 AI「快速拿到答案」反而
+> 是反目標。
 
-A related concern comes up in interviews and other assessment
-situations. These are often intended to specifically evaluate _your_
-skills and abilities, not those of an LLM. More companies now allow you
-to use LLMs and other AI-assisted tooling in interviews as long as you
-let them observe those interactions as part of the interview (i.e., they
-are evaluating your skill in making use of those tools too!), but those
-are still in the minority. If you are unsure about whether AI assistance
-is in scope for a particular task, ask!
+相關議題也常出現在面試或其他評量情境。這些情境通常是要評估_你_ 的能力，
+不是 LLM 的能力。現在越來越多公司允許你在面試中使用 LLM 與其他 AI 輔助工具，
+前提是你願意讓面試方觀察你的操作過程（也就是他們同時在評估你使用這些工具的能力），
+但這仍屬少數。若你不確定某項任務是否可用 AI，請先問清楚！
 
-> It should go without saying that if an assessment situation explicitly
-> calls for no external tools, no LLMs, etc., you should not use them.
-> Trying to do so discretely without getting caught **will** come back
-> to bite you.
+> 幾乎不用多說：若評量規則明確寫了不能用外部工具、不能用 LLM 等，就不該使用。
+> 想偷偷用而不被發現，**最後一定** 會反噬你。
 
-# Exercises
+# 練習
 
-1. Browse the source code of a well-known project (e.g.,
-   [Redis](https://github.com/redis/redis) or
-   [curl](https://github.com/curl/curl)). Find examples of some of the
-   comment types mentioned in the lecture: a useful TODO, a reference to
-   external documentation, a "why not" comment explaining an avoided
-   approach, or a hard-learned lesson. What would be lost if that
-   comment was not there?
+1. 瀏覽一個知名專案的原始碼（例如
+   [Redis](https://github.com/redis/redis) 或
+   [curl](https://github.com/curl/curl)）。找出講座中提到的註解類型範例：
+   有用的 TODO、外部文件參考、「為何不」註解（說明刻意避開的作法），
+   或踩坑後留下的經驗。思考：若這則註解不存在，會少掉什麼關鍵資訊？
 
-1. Pick an open-source project you're interested in and look at its
-   recent commit history (`git log`). Find one commit with a good
-   message that explains *why* the change was made, and one with a weak
-   message that only describes *what* changed. For the weak one, look at
-   the diff (`git show <hash>`) and try to write a better commit message
-   following the Problem → Solution → Implications structure. Notice how
-   much work is required to reassemble the necessary context after the
-   fact!
+1. 挑一個你有興趣的開源專案，查看近期 commit 歷史（`git log`）。
+   找一筆訊息寫得好的 commit（有解釋 *why*），再找一筆只描述 *what*
+   的弱訊息。對後者查看 diff（`git show <hash>`），嘗試用
+   Problem → Solution → Implications 結構重寫更好的 commit 訊息。
+   體會看看：事後補回必要脈絡需要多少額外成本！
 
-1. Compare the READMEs of three GitHub projects with 1000+ stars. Are
-   all of them equally useful? Look for things that come across mostly
-   as noise to you as a lesson for future READMEs you write yourself.
+1. 比較三個 GitHub 上超過 1000 stars 專案的 README。它們都一樣好用嗎？
+   找出那些對你而言比較像噪音的內容，當作你未來撰寫 README 的反面教材。
 
-1. Find an open issue on a project you use (check the "good first issue"
-   or "help wanted" labels if they have it). Evaluate the issue against
-   the criteria from the lecture: does it seem like it values the
-   maintainer's time and contains all the information necessary to debug
-   it, or do you expect that the maintainer may need to go multiple
-   rounds of questions with the submitter to get to the root problem?
+1. 在你有使用的專案中找一個 open issue（若有可先看 `good first issue`
+   或 `help wanted` 標籤）。依照本講座標準評估它：這份 issue 是否有尊重
+   維護者時間、並提供除錯所需完整資訊？還是你預期維護者得來回追問很多輪，
+   才能找到核心問題？
 
-1. Think of a bug you've encountered in software you use (or find one in
-   an issue tracker). Practice creating a minimal reproducible example:
-   strip away everything unrelated to the bug until you have the
-   smallest case that still demonstrates the problem. Write up what you
-   removed and why.
+1. 回想你在日常軟體中遇過的 bug（或從 issue tracker 找一個），練習建立
+   最小可重現範例：把與 bug 無關的元素一層層拿掉，直到剩下最小且仍可重現
+   問題的案例。並寫下你移除了哪些部分、為什麼移除。
 
-1. Find a merged pull request on a project you're familiar with that has
-   substantive review comments (not just "LGTM"). Read through the
-   review. Were all the comments equally productive? If you were the PR
-   author, how would you find the experience of getting all those
-   comments?
+1. 在你熟悉的專案中找一個已合併、且有實質審查留言（不只是「LGTM」）的
+   pull request，完整讀過審查內容。所有留言都一樣有幫助嗎？如果你是 PR 作者，
+   你會如何感受這整段回饋體驗？
 
-1. Go to Stack Overflow and find a question in a technology you know
-   that has a highly-voted answer. Then find one that was closed or
-   heavily downvoted. Compare them against the advice from the lecture;
-   was it predictable which question would get better answers?
+1. 到 Stack Overflow 找一個你熟悉技術領域中高票回答的問題，再找一個被關閉
+   或大量負評的問題。對照本講座建議比較兩者：你是否能預測哪種提問會得到
+   較高品質的回答？

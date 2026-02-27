@@ -1,8 +1,8 @@
 ---
 layout: lecture
-title: "Command-line Environment"
+title: "命令列環境"
 description: >
-  Learn how command-line programs work, including input/output streams, environment variables, and remote machines with SSH.
+  學習命令列程式如何運作，包含輸入／輸出串流、環境變數，以及透過 SSH 連線遠端主機。
 thumbnail: /static/assets/thumbnails/2026/lec2.png
 date: 2026-01-13
 ready: true
@@ -11,24 +11,24 @@ video:
   id: ccBGsPedE9Q
 ---
 
-As we covered in the previous lecture, most shells are not a mere launcher to start up other programs,
-but in practice they provide an entire programming language full of common patterns and abstractions.
-However, unlike the majority of programming languages, in shell scripting everything is designed around running programs and getting them to communicate with each other simply and efficiently.
+如同上一講提到的，多數 shell 並不只是拿來啟動其他程式的「發射器」，
+實務上它提供的是一整套程式語言，裡面包含大量常見模式與抽象概念。
+不過和多數程式語言不同的是，shell script 幾乎所有設計都圍繞在「執行程式」與「讓程式彼此高效溝通」這件事上。
 
-In particular, shell scripting is tightly bound by _conventions_. For a command line interface (CLI) program to play nicely within the broader shell environment there are some common patterns that it needs to follow.
-We will now cover many of the concepts required to understand how command line programs work as well as ubiquitous conventions on how to use and configure them.
+特別是，shell script 非常依賴 _慣例（conventions）_。若要讓一個命令列介面（CLI）程式能和整個 shell 生態良好協作，就需要遵守一些常見模式。
+接下來我們會介紹理解命令列程式運作所需的核心概念，以及各種常見的使用與設定慣例。
 
-# The Command Line Interface
+# 命令列介面（CLI）
 
-Writing a function in most programming languages looks something like:
+在大多數程式語言中，撰寫函式通常會長這樣：
 
 ```
 def add(x: int, y: int) -> int:
     return x + y
 ```
 
-Here we can explicitly see the inputs and the outputs of the program.
-In contrast, shell scripts can look quite different at first glance.
+在這裡，我們可以很明確地看到程式的輸入與輸出。
+相較之下，shell script 乍看之下會長得很不一樣。
 
 ```shell
 #!/usr/bin/env bash
@@ -46,39 +46,39 @@ else
 fi
 ```
 
-To properly understand what is going in scripts like this one we first need to introduce a few concepts that appear often when shell programs communicate with each other or with the shell environment:
+要正確理解這類腳本在做什麼，我們得先認識幾個概念。當 shell 程式彼此溝通，或和 shell 環境互動時，這些概念會一直出現：
 
-- Arguments
-- Streams
-- Environment variables
-- Return codes
-- Signals
+- 參數（Arguments）
+- 串流（Streams）
+- 環境變數（Environment variables）
+- 回傳碼（Return codes）
+- 訊號（Signals）
 
-## Arguments
+## 參數（Arguments）
 
-Shell programs receive a list of arguments when they are executed.
-Arguments are plain strings in shell, and it is up to the program how to interpret them.
-For instance when we do `ls -l folder/`, we are executing the program `/bin/ls` with arguments `['-l', 'folder/']`.
+Shell 程式在執行時，會收到一串參數清單。
+在 shell 裡，參數本質上都是字串，至於如何解讀，完全由程式自己決定。
+例如執行 `ls -l folder/` 時，本質上就是呼叫 `/bin/ls`，參數為 `['-l', 'folder/']`。
 
-From within a shell script we access these via special shell syntax.
-To access the first argument we access the variable `$1`, second argument `$2` and so on and so forth until `$9`. To access all arguments as a list we use `$@` and to retrieve the number of arguments `$#`. Additionally we can also access the name of the program with `$0`.
+在 shell script 內，我們可透過特殊語法存取這些參數。
+第一個參數是 `$1`、第二個是 `$2`，一路到 `$9`。要取得所有參數清單可用 `$@`，參數總數用 `$#`。另外也可用 `$0` 取得程式名稱。
 
-For most programs the arguments will consist of a mixture of _flags_ and regular strings.
-Flags can be identified because they are preceded by a dash (`-`) or double-dash (`--`).
-Flags are usually optional and their role is to modify the behavior of the program.
-For example `ls -l` changes how `ls` formats its output.
+對大多數程式來說，參數通常會混合 _旗標（flags）_ 與一般字串。
+旗標的辨識方式通常是前面有單破折號（`-`）或雙破折號（`--`）。
+旗標多半是可選的，功能是調整程式行為。
+例如 `ls -l` 就是在改變 `ls` 輸出的格式。
 
-You will see double dash flags with long names like `--all`, and single dash flags like `-a`, which are most often followed by a single letter.
-The same option might be specified in both formats, `ls -a` and `ls --all` are equivalent.
-Single dash flags are often grouped, so `ls -l -a` and `ls -la` are also equivalent.
-The order of flags usually doesn't matter either, `ls -la` and `ls -al` produce the same result.
-Some flags are quite prevalent and as you get more familiar with the shell environment you'll intuitively reach for them, for example (`--help`, `--verbose`, `--version`).
+你會看到像 `--all` 這種雙破折號長名稱旗標，也會看到像 `-a` 這種單破折號短旗標（通常是一個字母）。
+同一個選項常常兩種寫法都可用，`ls -a` 與 `ls --all` 等價。
+單破折號旗標常可合併，所以 `ls -l -a` 與 `ls -la` 也等價。
+旗標順序通常也不重要，`ls -la` 和 `ls -al` 結果相同。
+有些旗標非常常見，熟悉 shell 之後你會自然常用它們，例如 `--help`、`--verbose`、`--version`。
 
-> Flags are a first good example of shell conventions. The shell language does not require that our program uses `-` or `--` in this particular way.
-Nothing prevents us from writing a program with syntax `myprogram +myoption myfile`, but it would lead to confusion since the expectation is that we use dashes.
-> In practice, most programming languages provide CLI flag parsing libraries (e.g. `argparse` in python to parse arguments with the dash syntax).
+> 旗標是 shell 慣例的一個好例子。shell 語言本身並沒有硬性規定程式一定要用 `-` 或 `--`。
+> 理論上你也可以設計成 `myprogram +myoption myfile`，但這會造成混淆，因為大家普遍預期是用破折號。
+> 實務上，多數程式語言都有 CLI 旗標剖析函式庫（例如 Python 的 `argparse`）來處理這種破折號語法。
 
-Another common convention in CLI programs is for programs to accept a variable number of arguments of the same type. When given arguments in this way the command performs the same operation on each one of them.
+CLI 程式另一個常見慣例是：接受「同型別、數量可變」的參數。也就是一次給多個參數時，指令會對每個參數做相同操作。
 
 ```shell
 mkdir src
@@ -87,10 +87,10 @@ mkdir docs
 mkdir src docs
 ```
 
-This syntax sugar might seem unnecessary at first, but it becomes really powerful when combined with _globbing_.
-Globbing or globs are special patterns that the shell will expand before calling the program.
+這種語法糖一開始看起來好像可有可無，但搭配 _globbing_（萬用字元展開）時就非常強大。
+Globbing（或叫 globs）是 shell 在呼叫程式前，會先展開的特殊樣式。
 
-Say we wanted to delete all .py files in the current folder nonrecursively. From what we learned in the previous lecture we could achieve this by running
+假設我們想刪除目前資料夾中（不含子資料夾）所有 `.py` 檔，依照上一講學到的方法可以這樣做：
 
 ```shell
 for file in $(ls | grep -P '\.py$'); do
@@ -98,54 +98,54 @@ for file in $(ls | grep -P '\.py$'); do
 done
 ```
 
-But we can replace that with just `rm *.py`!
+但其實可以直接寫成 `rm *.py`！
 
-When we type `rm *.py` into the terminal, the shell will not call the `/bin/rm` program with arguments `['*.py']`.
-Instead, the shell will search for files in the current folder matching the pattern `*.py` where `*` can match any string of zero or more characters of any type.
-So if our folder has `main.py` and `utils.py` then the `rm` program will receive arguments `['main.py', 'utils.py']`.
+當你在終端機輸入 `rm *.py` 時，shell 並不會把 `['*.py']` 直接傳給 `/bin/rm`。
+它會先在目前資料夾搜尋符合 `*.py` 的檔案，其中 `*` 代表可匹配長度為 0 或以上的任意字串。
+所以如果資料夾裡有 `main.py` 與 `utils.py`，那麼 `rm` 實際收到的參數會是 `['main.py', 'utils.py']`。
 
-The most common globs you will find are wildcards `*` (zero or more of anything), `?` (exactly one of anything) and curly braces.
-Curly braces `{}` expand a comma-separated list of patterns into multiple arguments.
+最常見的 glob 有：`*`（任意長度）、`?`（剛好一個字元）、以及大括號展開。
+大括號 `{}` 會把逗號分隔的樣式清單展開成多個參數。
 
-In practice, globs are best understood with motivating examples.
+實務上，透過例子最容易理解 globs。
 
 ```shell
 touch folder/{a,b,c}.py
-# Will expand to
+# 會展開成
 touch folder/a.py folder/b.py folder/c.py
 
 convert image.{png,jpg}
-# Will expand to
+# 會展開成
 convert image.png image.jpg
 
 cp /path/to/project/{setup,build,deploy}.sh /newpath
-# Will expand to
+# 會展開成
 cp /path/to/project/setup.sh /path/to/project/build.sh /path/to/project/deploy.sh /newpath
 
-# Globbing techniques can also be combined
+# Globbing 技巧也可以組合使用
 mv *{.py,.sh} folder
-# Will move all *.py and *.sh files
+# 會移動所有 *.py 與 *.sh 檔案
 ```
 
-> Some shells (e.g. zsh) support even more advanced forms of globbing such as `**` that will expand to include recursive paths. So `rm **/*.py` will delete all .py files recursively.
+> 有些 shell（例如 zsh）支援更進階的 globbing，像是 `**` 可展開為遞迴路徑。也就是說 `rm **/*.py` 會遞迴刪除所有 `.py` 檔案。
 
 
-## Streams
+## 串流（Streams）
 
-Whenever we execute a program pipeline like
+每當我們執行像這樣的 pipeline：
 
 ```shell
 cat myfile | grep -P '\d+' | uniq -c
 ```
 
-we see that the `grep` program is communicating with both the `cat` and `uniq` programs.
+可以看到 `grep` 同時在和 `cat` 以及 `uniq` 溝通。
 
-An important observation here is that all three programs are executing at once.
-Namely, the shell is not first calling cat, then grep, and then uniq.
-Instead, all three programs are being spawned and the shell is connecting the output of cat to the input of grep and the output of grep to the input of uniq.
-When using the pipe operator `|`, the shell operates on streams of data that flow from one program to the next in the chain.
+這裡有個重要觀察：三個程式是「同時」執行的。
+shell 並不是先跑 `cat`，再跑 `grep`，最後才跑 `uniq`。
+相反地，三者會一起被啟動，shell 只負責把 `cat` 的輸出接到 `grep` 的輸入，再把 `grep` 的輸出接到 `uniq` 的輸入。
+使用 pipe 運算子 `|` 時，shell 是在處理一段段從一個程式流到下一個程式的資料串流。
 
-We can demonstrate this concurrency, all commands in a pipeline start immediately:
+我們可以示範這種並行行為：pipeline 裡的指令會立即全部啟動。
 
 ```console
 $ (sleep 15 && cat numbers.txt) | grep -P '^\d$' | sort | uniq  &
@@ -158,166 +158,166 @@ $ ps | grep -P '(sleep|cat|grep|sort|uniq)'
   32948 pts/1    00:00:00 grep
 ```
 
-We can see that all processes but `cat` are running right away. The shell spawns all processes and connects their streams before any of them finish. `cat` will only get started once sleep finishes, and the output of `cat` will be sent to grep and so on and so forth.
+可以看到除了 `cat` 以外，其他行程都立刻在跑。shell 會先把所有行程建立起來並把串流接好，而不是等某個先跑完。`cat` 會等 `sleep` 結束才開始，接著 `cat` 輸出會送到 `grep`，後續依此類推。
 
-Every program has an input stream, labeled stdin (for standard input). When piping, stdin is connected automatically. Within a script, many programs accept `-` as a filename to mean "read from stdin":
+每個程式都有輸入串流，稱為 stdin（standard input）。使用 pipe 時，stdin 會自動接好。在腳本中，很多程式接受 `-` 當檔名，表示「從 stdin 讀取」：
 
 ```shell
-# These are equivalent when data comes from a pipe
+# 當資料來自 pipe 時，這兩種寫法等價
 echo "hello" | grep "hello"
 echo "hello" | grep "hello" -
 ```
 
-Similarly, every program has two output streams: stdout and stderr.
-The standard output is the one most commonly encountered and it is the one that is used for piping the output of the program to the next command in the pipeline.
-The standard error is an alternative stream that is intended for programs to report warnings and other types of issues, without that output getting parsed by the next command in the chain.
+同樣地，每個程式有兩種輸出串流：stdout 與 stderr。
+標準輸出（stdout）是最常見的輸出，也就是會透過 pipe 傳給下一個指令的那條串流。
+標準錯誤（stderr）則是另一條輸出，通常拿來回報警告或錯誤，避免被 pipeline 下一個指令當成一般資料去解析。
 
 ```console
 $ ls /nonexistent
 ls: cannot access '/nonexistent': No such file or directory
 $ ls /nonexistent | grep "pattern"
 ls: cannot access '/nonexistent': No such file or directory
-# The error message still appears because stderr is not piped
+# 錯誤訊息仍會出現，因為 stderr 不會被 pipe
 $ ls /nonexistent 2>/dev/null
-# No output - stderr was redirected to /dev/null
+# 沒有輸出，因為 stderr 被重新導向到 /dev/null
 ```
 
-The shell provides syntax for redirecting these streams. Here are some illustrative examples.
+shell 提供了重新導向這些串流的語法。下面是一些常見例子。
 
 ```shell
-# Redirect stdout to a file (overwrite)
+# 將 stdout 重新導向到檔案（覆蓋）
 echo "hello" > output.txt
 
-# Redirect stdout to a file (append)
+# 將 stdout 重新導向到檔案（附加）
 echo "world" >> output.txt
 
-# Redirect stderr to a file
+# 將 stderr 重新導向到檔案
 ls foobar 2> errors.txt
 
-# Redirect both stdout and stderr to the same file
+# 將 stdout 與 stderr 都重新導向到同一個檔案
 ls foobar &> all_output.txt
 
-# Redirect stdin from a file
+# 從檔案重新導向 stdin
 grep "pattern" < input.txt
 
-# Discard output by redirecting to /dev/null
+# 重新導向到 /dev/null 來丟棄輸出
 cmd > /dev/null 2>&1
 ```
 
-Another powerful tool that exemplifies the Unix philosophy is [`fzf`](https://github.com/junegunn/fzf), a fuzzy finder. It reads lines from stdin and provides an interactive interface to filter and select:
+另一個很能體現 Unix 哲學的工具是 [`fzf`](https://github.com/junegunn/fzf)（模糊搜尋器）。它會從 stdin 讀入多行資料，並提供互動式介面讓你篩選與選取：
 
 ```console
 $ ls | fzf
 $ cat ~/.bash_history | fzf
 ```
 
-`fzf` can be integrated with many shell operations. We'll see more uses of it when we discuss shell customization.
+`fzf` 能和很多 shell 操作整合。講到 shell 客製化時，我們會再看到更多應用。
 
 
-## Environment variables
+## 環境變數（Environment variables）
 
-To assign variables in bash we use the syntax `foo=bar`, and then access the value of the variable with the `$foo` syntax.
-Note that `foo = bar` is invalid syntax as the shell will parse it as calling the program `foo` with arguments `['=', 'bar']`.
-In shell scripting the role of the space character is to perform argument splitting.
-This behavior can be confusing and tricky to get used to, so keep it in mind.
+在 bash 裡，指定變數用 `foo=bar`，存取變數值用 `$foo`。
+要注意 `foo = bar` 是錯誤語法，因為 shell 會把它解讀成：呼叫程式 `foo`，參數為 `['=', 'bar']`。
+在 shell script 裡，空白字元很重要，因為它會觸發參數切割（argument splitting）。
+這個行為一開始常讓人混淆，請特別留意。
 
-Shell variables do not have types, they are all strings.
-Note that when writing string expressions in the shell single and double quotes are not interchangeable.
-Strings delimited with `'` are literal strings and will not expand variables, perform command substitution, or process escape sequences, whereas `"` delimited strings will.
+shell 變數沒有型別，全部都是字串。
+另外，shell 的單引號與雙引號不可互換。
+被 `'` 包住的是字面值字串，不會展開變數、不會做指令替換，也不會處理跳脫字元；被 `"` 包住則會。
 
 ```shell
 foo=bar
 echo "$foo"
-# prints bar
+# 會印出 bar
 echo '$foo'
-# prints $foo
+# 會印出 $foo
 ```
 
-To capture the output of a command into a variable we use _command substitution_.
-When we execute
+如果要把指令輸出放進變數，要用 _command substitution_（指令替換）。
+當我們執行：
 ```shell
 files=$(ls)
 echo "$files" | grep README
 echo "$files" | grep ".py"
 ```
-the output (concretely the stdout) of ls is placed into the variable `$files` which we can access later.
-The content of the `$files` variable does include the newlines from the ls output, which is how programs like `grep` know to operate on each item independently.
+`ls` 的輸出（精確地說是 stdout）會被放進 `$files` 變數，後續就可再取用。
+`$files` 內容會保留 `ls` 的換行，這也是像 `grep` 這類程式能逐項處理資料的原因。
 
-A lesser known similar feature is _process substitution_, `<( CMD )` will execute `CMD` and place the output in a temporary file and substitute the `<()` with that file's name.
-This is useful when commands expect values to be passed by file instead of by STDIN.
-For example, `diff <(ls src) <(ls docs)` will show differences between files in dirs `src` and `docs`.
+一個較少被提到、但很像的功能是 _process substitution_（行程替換）。`<( CMD )` 會執行 `CMD`，把輸出放進暫存檔，然後用那個暫存檔路徑取代 `<()`。
+當某個指令要求你「傳入檔案」而不是從 STDIN 讀取時，這招很有用。
+例如 `diff <(ls src) <(ls docs)` 就能比較 `src` 與 `docs` 兩個資料夾的內容差異。
 
-Whenever a shell program calls another program it passes along a set of variables that are often referred to as _environment variables_.
-From within a shell we can find the current environment variables by running `printenv`.
-To pass an environment variable explicitly we can prepend a command with a variable assignment
+當 shell 程式呼叫另一個程式時，會一起傳遞一組變數，這組變數通常稱為 _環境變數（environment variables）_。
+在 shell 中可用 `printenv` 查看目前的環境變數。
+若要明確傳入某個環境變數，可在指令前先加變數指定：
 
-> Environment variables are conventionally written in ALL_CAPS (e.g., `HOME`, `PATH`, `DEBUG`). This is a convention, not a technical requirement, but following it helps distinguish environment variables from local shell variables which are typically lowercase.
+> 環境變數慣例上會用全大寫（例如 `HOME`、`PATH`、`DEBUG`）。這是慣例，不是技術限制；但遵守它能更容易區分環境變數與通常用小寫的本地 shell 變數。
 
 ```shell
-TZ=Asia/Tokyo date  # prints the current time in Tokyo
-echo $TZ  # this will be empty, since TZ was only set for the child command
+TZ=Asia/Tokyo date  # 會印出東京目前時間
+echo $TZ  # 這裡會是空的，因為 TZ 只對該子行程生效
 ```
 
-Alternatively, we can use the `export` built-in function that will modify our current environment and thus all child processes will inherit the variable:
+另一種做法是使用 `export` 內建指令，它會修改目前 shell 環境，因此後續所有子行程都會繼承該變數：
 
 ```shell
 export DEBUG=1
-# All programs from this point onwards will have DEBUG=1 in their environment
+# 從這裡開始執行的所有程式都會帶有 DEBUG=1
 bash -c 'echo $DEBUG'
-# prints 1
+# 會印出 1
 ```
 
-To delete a variable use the `unset` built-in command, e.g. `unset DEBUG`.
+要刪除變數可用 `unset` 內建指令，例如 `unset DEBUG`。
 
-> Environment variables are another shell convention. They can be used to modify the behavior of many programs implicitly rather than explicitly. For example, the shell sets the `$HOME` environment variable with the path of the home folder of the current user. Then programs can access this variable to get this information instead of requiring an explicit `--home /home/alice`. Another common example is `$TZ`, which many programs use to format dates and times according to the specified timezone.
+> 環境變數也是 shell 的重要慣例之一。它讓你可以「隱式」調整很多程式行為，而不必每次都寫成明確參數。舉例來說，shell 會把目前使用者家目錄路徑設在 `$HOME`，程式可直接讀取這個值，不必額外要求 `--home /home/alice`。另一個常見例子是 `$TZ`，很多程式會根據它指定的時區格式化日期與時間。
 
-## Return codes
+## 回傳碼（Return codes）
 
-As we saw earlier, the main output of a shell program is conveyed through the stdout/stderr streams and filesystem side effects.
+如前面所見，shell 程式主要透過 stdout/stderr 串流與檔案系統副作用來輸出結果。
 
-By default a shell script will return exit code zero.
-The convention is that zero means everything went well whereas nonzero means some issues were encountered.
-To return a nonzero exit code we have to use the `exit NUM` shell built-in.
-We can access the return code of the last command that was run by accessing the special variable `$?`.
+預設情況下，shell script 的結束碼（exit code）是 0。
+慣例上，0 代表成功；非 0 代表過程中遇到問題。
+要回傳非 0，必須用 `exit NUM` 這個 shell 內建指令。
+最近一次執行指令的回傳碼可透過特殊變數 `$?` 取得。
 
-The shell has boolean operators `&&` and `||` for performing AND and OR operations respectively.
-Unlike those encountered in regular programming languages, the ones in the shell operate on the return code of programs.
-Both of these are [short-circuiting](https://en.wikipedia.org/wiki/Short-circuit_evaluation) operators.
-This means that they can be used to conditionally run commands based on the success or failure of previous commands, where success is determined based on whether the return code is zero or not. Some examples:
+shell 有布林運算子 `&&` 與 `||`，分別代表 AND 與 OR。
+和一般程式語言不同，shell 這兩個運算子是看「指令回傳碼」來判斷。
+它們都屬於[短路求值（short-circuiting）](https://en.wikipedia.org/wiki/Short-circuit_evaluation)運算子。
+因此可依照前一個指令成功或失敗，條件式地執行下一個指令；其中成功的定義是回傳碼是否為 0。例子如下：
 
 ```shell
-# echo will only run if grep succeeds (finds a match)
+# 只有 grep 成功（找到匹配）時才會執行 echo
 grep -q "pattern" file.txt && echo "Pattern found"
 
-# echo will only run if grep fails (no match)
+# 只有 grep 失敗（找不到匹配）時才會執行 echo
 grep -q "pattern" file.txt || echo "Pattern not found"
 
-# true is a shell program that always succeeds
+# true 是永遠成功的 shell 程式
 true && echo "This will always print"
 
-# and false is a shell program that always fails
+# false 是永遠失敗的 shell 程式
 false || echo "This will always print"
 ```
 
-The same principle applies to `if` and `while` statements, they both use return codes to make decisions:
+同樣原理也適用於 `if` 與 `while`：它們都是根據回傳碼做判斷。
 
 ```shell
-# if uses the return code of the condition command (0 = true, nonzero = false)
+# if 會看條件指令的回傳碼（0 = true，非 0 = false）
 if grep -q "pattern" file.txt; then
     echo "Found"
 fi
 
-# while loops continue as long as the command returns 0
+# while 會在指令持續回傳 0 時繼續迴圈
 while read line; do
     echo "$line"
 done < file.txt
 ```
 
-## Signals
+## 訊號（Signals）
 
-In some cases you will need to interrupt a program while it is executing, for instance if a command is taking too long to complete.
-The simplest way to interrupt a program is to press `Ctrl-C` and the command will probably stop.
-But how does this actually work and why does it sometimes fail to stop the process?
+有時候你會需要在程式執行中斷它，例如某個指令跑太久。
+最簡單的方式是按 `Ctrl-C`，通常該指令就會停止。
+但這背後到底怎麼運作？又為什麼有時候它不會停？
 
 ```console
 $ sleep 100
@@ -325,21 +325,21 @@ $ sleep 100
 $
 ```
 
-> Note, here `^C` is how `Ctrl` is displayed when typed in the terminal.
+> 注意，這裡的 `^C` 是終端機顯示 `Ctrl` 的方式。
 
-Under the hood, what happened here is the following:
+底層實際發生的事如下：
 
-1. We pressed `Ctrl-C`
-2. The shell identified the special combination of characters
-3. The shell process sent a SIGINT signal to the `sleep` process
-4. The signal interrupted the execution of the `sleep` process
+1. 你按下 `Ctrl-C`
+2. shell 辨識到這個特殊按鍵組合
+3. shell 行程送出 `SIGINT` 訊號給 `sleep` 行程
+4. 這個訊號中斷了 `sleep` 的執行
 
-Signals are a special communication mechanism.
-When a process receives a signal it stops its execution, deals with the signal and potentially changes the flow of execution based on the information that the signal delivered. For this reason, signals are _software interrupts_.
+訊號是一種特殊的行程溝通機制。
+當行程收到訊號時，會先中斷目前執行，處理該訊號，並可能依訊號內容改變後續流程。因此，訊號可視為一種 _軟體中斷（software interrupts）_。
 
 
-In our case, when typing `Ctrl-C` this prompts the shell to deliver a `SIGINT` signal to the process.
-Here's a minimal example of a Python program that captures `SIGINT` and ignores it, no longer stopping. To kill this program we can now use the `SIGQUIT` signal instead, by typing `Ctrl-\`.
+以這個例子來說，按下 `Ctrl-C` 會讓 shell 對行程送出 `SIGINT`。
+下面是一個最小化 Python 範例：它會攔截 `SIGINT` 並忽略它，因此 `Ctrl-C` 不再能停止程式。這時可以改用 `SIGQUIT`（按 `Ctrl-\`）來結束。
 
 ```python
 #!/usr/bin/env python
@@ -356,7 +356,7 @@ while True:
     i += 1
 ```
 
-Here's what happens if we send `SIGINT` twice to this program, followed by `SIGQUIT`. Note that `^` is how `Ctrl` is displayed when typed in the terminal.
+下面示範先對此程式送兩次 `SIGINT`，再送 `SIGQUIT` 會發生什麼。注意 `^` 是終端機顯示 `Ctrl` 的方式。
 
 ```console
 $ python sigint.py
@@ -367,25 +367,25 @@ I got a SIGINT, but I am not stopping
 30^\[1]    39913 quit       python sigint.py
 ```
 
-While `SIGINT` and `SIGQUIT` are both usually associated with terminal related requests, a more generic signal for asking a process to exit gracefully is the `SIGTERM` signal.
-To send this signal we can use the [`kill`](https://www.man7.org/linux/man-pages/man1/kill.1.html) command, with the syntax `kill -TERM <PID>`.
+雖然 `SIGINT` 與 `SIGQUIT` 常見於終端機互動情境，但若要更通用地要求行程「優雅結束」，通常會用 `SIGTERM`。
+你可以用 [`kill`](https://www.man7.org/linux/man-pages/man1/kill.1.html) 送出這個訊號，語法是 `kill -TERM <PID>`。
 
-Signals can do other things beyond killing a process. For instance, `SIGSTOP` pauses a process. In the terminal, typing `Ctrl-Z` will prompt the shell to send a `SIGTSTP` signal, short for Terminal Stop (i.e. the terminal's version of `SIGSTOP`).
+訊號不只用來終止行程。像 `SIGSTOP` 就能暫停行程。在終端機按 `Ctrl-Z` 時，shell 會送出 `SIGTSTP`（Terminal Stop），可視為終端機版本的 `SIGSTOP`。
 
-We can then continue the paused job in the foreground or in the background using [`fg`](https://www.man7.org/linux/man-pages/man1/fg.1p.html) or [`bg`](https://man7.org/linux/man-pages/man1/bg.1p.html), respectively.
+接著可用 [`fg`](https://www.man7.org/linux/man-pages/man1/fg.1p.html) 或 [`bg`](https://man7.org/linux/man-pages/man1/bg.1p.html) 把暫停工作恢復到前景或背景執行。
 
-The [`jobs`](https://www.man7.org/linux/man-pages/man1/jobs.1p.html) command lists the unfinished jobs associated with the current terminal session.
-You can refer to those jobs using their pid (you can use [`pgrep`](https://www.man7.org/linux/man-pages/man1/pgrep.1.html) to find that out).
-More intuitively, you can also refer to a process using the percent symbol followed by its job number (displayed by `jobs`). To refer to the last backgrounded job you can use the `$!` special parameter.
+[`jobs`](https://www.man7.org/linux/man-pages/man1/jobs.1p.html) 指令會列出目前終端機 session 尚未結束的工作。
+你可以用 pid 來指它們（可用 [`pgrep`](https://www.man7.org/linux/man-pages/man1/pgrep.1.html) 查到）。
+更直覺的方式是用 `%` 加工作編號（由 `jobs` 顯示）。若要指向最近一次背景化的工作，可用特殊參數 `$!`。
 
-One more thing to know is that the `&` suffix in a command will run the command in the background, giving you the prompt back, although it will still use the shell's STDOUT which can be annoying (use shell redirections in that case). Equivalently, to background an already running program you can do `Ctrl-Z` followed by `bg`.
+另一個要點是：在指令後面加 `&` 會讓它進背景執行，提示字元會立刻回來；但它仍可能使用 shell 的 STDOUT，畫面可能很干擾（這時可搭配重新導向）。等價地，若程式已在前景執行，可用 `Ctrl-Z` 再接 `bg` 讓它轉到背景。
 
 
-Note that backgrounded processes are still children processes of your terminal and will die if you close the terminal (this will send yet another signal, `SIGHUP`).
-To prevent that from happening you can run the program with [`nohup`](https://www.man7.org/linux/man-pages/man1/nohup.1.html) (a wrapper to ignore `SIGHUP`), or use `disown` if the process has already been started.
-Alternatively, you can use a terminal multiplexer as we will see in the next section.
+要注意，背景行程仍是目前終端機的子行程；若你關閉終端機，它們通常也會一起結束（會收到 `SIGHUP` 訊號）。
+要避免這件事，可用 [`nohup`](https://www.man7.org/linux/man-pages/man1/nohup.1.html) 執行程式（它會忽略 `SIGHUP`），或在程式已啟動後用 `disown`。
+另一種做法是使用終端機多工器，下一節會介紹。
 
-Below is a sample session to showcase some of these concepts.
+下面是一段示範 session，展示上述概念。
 
 ```
 $ sleep 1000
@@ -403,7 +403,7 @@ $ jobs
 $ kill -SIGHUP %1
 [1]  + 18653 hangup     sleep 1000
 
-$ kill -SIGHUP %2   # nohup protects from SIGHUP
+$ kill -SIGHUP %2   # nohup 會保護行程不受 SIGHUP 影響
 
 $ jobs
 [2]  + running    nohup sleep 2000
@@ -412,20 +412,20 @@ $ kill %2
 [2]  + 18745 terminated  nohup sleep 2000
 ```
 
-A special signal is `SIGKILL` since it cannot be captured by the process and it will always terminate it immediately. However, it can have bad side effects such as leaving orphaned children processes.
+`SIGKILL` 是一個特殊訊號：行程無法攔截它，收到後一定會立即終止。不過它可能造成副作用，例如留下孤兒子行程。
 
-You can learn more about these and other signals [here](https://en.wikipedia.org/wiki/Signal_(IPC)) or typing [`man signal`](https://www.man7.org/linux/man-pages/man7/signal.7.html) or `kill -l`.
+想進一步了解各種訊號，可參考[這裡](https://en.wikipedia.org/wiki/Signal_(IPC))，或在終端機輸入 [`man signal`](https://www.man7.org/linux/man-pages/man7/signal.7.html) 與 `kill -l`。
 
-Within shell scripts, you can use the `trap` built-in to execute commands when signals are received. This is useful for cleanup operations:
+在 shell script 裡，你可以用 `trap` 內建指令在收到訊號時執行特定命令。這在清理資源時很有用：
 
 ```shell
 #!/usr/bin/env bash
 cleanup() {
-    echo "Cleaning up temporary files..."
+    echo "正在清理暫存檔..."
     rm -f /tmp/mytemp.*
 }
-trap cleanup EXIT  # Run cleanup when script exits
-trap cleanup SIGINT SIGTERM  # Also on Ctrl-C or kill
+trap cleanup EXIT  # 腳本結束時執行清理
+trap cleanup SIGINT SIGTERM  # Ctrl-C 或 kill 時也執行
 ```
 {% comment %}
 ### Users, Files and Permissions
@@ -490,55 +490,55 @@ So far we've focused on your local machine, but many of these skills become even
 
 {% endcomment %}
 
-# Remote Machines
+# 遠端主機
 
-It has become more and more common for programmers to work with remote servers in their everyday work. The most common tool for the job here is SSH (Secure Shell) which will help us connect to a remote server and provide the now familiar shell interface. We connect to a server with a command like:
+現在程式設計師在日常工作中使用遠端伺服器已經越來越常見。最常用的工具是 SSH（Secure Shell），它能幫我們連到遠端伺服器，並提供熟悉的 shell 介面。連線指令通常像這樣：
 
 ```bash
 ssh alice@server.mit.edu
 ```
 
-Here we are trying to ssh as user `alice` in server `server.mit.edu`.
+這裡代表我們要用使用者 `alice` 的身分連到 `server.mit.edu`。
 
-An often overlooked feature of `ssh` is the ability to run commands non-interactively. `ssh` correctly handles sending the stdin and receiving the stdout of the command, so we can combine it with other commands
+`ssh` 有個常被忽略的功能：可用非互動方式直接執行指令。`ssh` 會正確處理指令的 stdin 與 stdout，所以可以很自然地和其他指令串接：
 
 ```shell
-# here ls runs in the remote, and wc runs locally
+# 這裡 ls 在遠端執行，wc 在本機執行
 ssh alice@server ls | wc -l
 
-# here both ls and wc run in the server
+# 這裡 ls 與 wc 都在遠端伺服器執行
 ssh alice@server 'ls | wc -l'
 
 ```
 
-> Try installing [Mosh](https://mosh.org/) as a SSH replacement that can handle disconnections, entering/exiting sleep, changing networks and dealing with high latency links.
+> 可以試試 [Mosh](https://mosh.org/) 作為 SSH 替代方案。它能更好處理斷線、電腦睡眠喚醒、網路切換，以及高延遲連線。
 
-For `ssh` to let us run commands in the remote server we need to prove that we are authorized to do so.
-We can do this via passwords or ssh keys.
-Key-based authentication utilizes public-key cryptography to prove to the server that the client owns the secret private key without revealing the key.
-Key based authentication is both more convenient and more secure, so you should prefer it.
-Note that the private key (often `~/.ssh/id_rsa` and more recently `~/.ssh/id_ed25519`) is effectively your password, so treat it like so and never share its contents.
+要讓 `ssh` 允許我們在遠端執行指令，必須先證明我們有權限。
+這可以透過密碼或 SSH 金鑰完成。
+金鑰驗證使用公開金鑰密碼學，讓客戶端在不洩漏私鑰的情況下，證明自己持有該私鑰。
+金鑰驗證通常更方便也更安全，建議優先使用。
+請注意，私鑰（常見像 `~/.ssh/id_rsa`，近年更常見 `~/.ssh/id_ed25519`）本質上就是你的密碼，務必妥善保管，絕對不要外流內容。
 
-To generate a pair you can run [`ssh-keygen`](https://www.man7.org/linux/man-pages/man1/ssh-keygen.1.html).
+要產生一組金鑰，可執行 [`ssh-keygen`](https://www.man7.org/linux/man-pages/man1/ssh-keygen.1.html)。
 ```bash
 ssh-keygen -a 100 -t ed25519 -f ~/.ssh/id_ed25519
 ```
 
-If you have ever configured pushing to GitHub using SSH keys, then you have probably done the steps outlined [here](https://help.github.com/articles/connecting-to-github-with-ssh/) and have a valid key pair already. To check if you have a passphrase and validate it you can run `ssh-keygen -y -f /path/to/key`.
+如果你曾設定過用 SSH 金鑰推送到 GitHub，你很可能已做過[這裡](https://help.github.com/articles/connecting-to-github-with-ssh/)提到的步驟，也已經有可用的金鑰組。要檢查金鑰是否有 passphrase 並驗證它，可執行 `ssh-keygen -y -f /path/to/key`。
 
-At the server side `ssh` will look into `.ssh/authorized_keys` to determine which clients it should let in. To copy a public key over you can use:
+在伺服器端，`ssh` 會查看 `.ssh/authorized_keys` 來判斷允許哪些客戶端登入。要把公鑰複製到遠端，可用：
 
 ```bash
 cat .ssh/id_ed25519.pub | ssh alice@remote 'cat >> ~/.ssh/authorized_keys'
 
-# or more simply (if ssh-copy-id is available)
+# 或更簡單（若系統有 `ssh-copy-id`）
 
 ssh-copy-id -i .ssh/id_ed25519 alice@remote
 ```
 
-Beyond running commands, the connection that ssh establishes can be used to transfer files from and to the server securely. [`scp`](https://www.man7.org/linux/man-pages/man1/scp.1.html) is the most traditional tool and the syntax is `scp path/to/local_file remote_host:path/to/remote_file`. [`rsync`](https://www.man7.org/linux/man-pages/man1/rsync.1.html) improves upon `scp` by detecting identical files in local and remote, and preventing copying them again. It also provides more fine grained control over symlinks, permissions and has extra features like the `--partial` flag that can resume from a previously interrupted copy. `rsync` has a similar syntax to `scp`.
+除了執行指令之外，SSH 建立的連線也可用來安全地在本機與伺服器之間傳檔。最傳統的工具是 [`scp`](https://www.man7.org/linux/man-pages/man1/scp.1.html)，語法為 `scp path/to/local_file remote_host:path/to/remote_file`。[`rsync`](https://www.man7.org/linux/man-pages/man1/rsync.1.html) 則進一步改善 `scp`：它會偵測本機與遠端已相同的檔案，避免重複複製。它也提供更細緻的符號連結與權限控制，還有像 `--partial` 這種可從中斷處續傳的功能。`rsync` 語法與 `scp` 類似。
 
-SSH client configuration is located at `~/.ssh/config` and it lets us declare hosts and set default settings for them. This configuration file is not just read by `ssh` but also other programs like `scp`, `rsync`, `mosh`, &c.
+SSH 用戶端設定檔在 `~/.ssh/config`，可用來定義主機別名並為它們設定預設參數。這個檔案不只 `ssh` 會讀，`scp`、`rsync`、`mosh` 等工具也會使用。
 
 ```bash
 Host vm
@@ -547,7 +547,7 @@ Host vm
     Port 2222
     IdentityFile ~/.ssh/id_ed25519
 
-# Configs can also take wildcards
+# 設定也可使用萬用字元
 Host *.mit.edu
     User alice
 ```
@@ -555,60 +555,59 @@ Host *.mit.edu
 
 
 
-# Terminal Multiplexers
+# 終端機多工器（Terminal Multiplexers）
 
-When using the command line interface you will often want to run more than one thing at once.
-For instance, you might want to run your editor and your program side by side.
-Although this can be achieved by opening new terminal windows, using a terminal multiplexer is a more versatile solution.
+使用命令列時，你常會想同時跑不只一件事。
+例如一邊開編輯器、一邊跑程式。
+雖然可以靠開多個終端機視窗達成，但使用終端機多工器會更彈性。
 
-Terminal multiplexers like [`tmux`](https://www.man7.org/linux/man-pages/man1/tmux.1.html) allow you to multiplex terminal windows using panes and tabs so you can interact with multiple shell sessions in an efficient manner.
-Moreover, terminal multiplexers let you detach a current terminal session and reattach at some point later in time.
-Because of this, terminal multiplexers are really convenient when working with remote machines, as it avoids the need to use `nohup` and similar tricks.
+像 [`tmux`](https://www.man7.org/linux/man-pages/man1/tmux.1.html) 這類終端機多工器，能透過分割窗格與分頁來同時管理多個 shell session，讓操作更有效率。
+此外，多工器可讓你把目前 session 分離（detach），之後再接回來（reattach）。
+因此在遠端主機工作時特別方便，常能省去 `nohup` 這類技巧。
 
-The most popular terminal multiplexer these days is [`tmux`](https://www.man7.org/linux/man-pages/man1/tmux.1.html). `tmux` is highly configurable and by using the associated keybindings you can create multiple tabs and panes and quickly navigate through them.
+目前最流行的終端機多工器是 [`tmux`](https://www.man7.org/linux/man-pages/man1/tmux.1.html)。`tmux` 可高度客製化，透過快捷鍵可以快速建立多個分頁與窗格並在其間移動。
 
-`tmux` expects you to know its keybindings, and they all have the form `<C-b> x` where that means (1) press `Ctrl+b`, (2) release `Ctrl+b`, and then (3) press `x`. `tmux` has the following hierarchy of objects:
-- **Sessions** - a session is an independent workspace with one or more windows
-    + `tmux` starts a new session.
-    + `tmux new -s NAME` starts it with that name.
-    + `tmux ls` lists the current sessions
-    + Within `tmux` typing `<C-b> d`  detaches the current session
-    + `tmux a` attaches the last session. You can use `-t` flag to specify which
+`tmux` 需要你熟悉它的快捷鍵，格式通常是 `<C-b> x`，意思是：(1) 按 `Ctrl+b`、(2) 放開 `Ctrl+b`、(3) 再按 `x`。`tmux` 物件層級如下：
+- **Sessions** - 一個 session 是獨立工作空間，內含一個或多個視窗
+    + `tmux`：啟動新 session
+    + `tmux new -s NAME`：以指定名稱啟動
+    + `tmux ls`：列出目前 sessions
+    + 在 `tmux` 內按 `<C-b> d`：分離目前 session
+    + `tmux a`：接回最近一次 session，可用 `-t` 指定目標
 
-- **Windows** - Equivalent to tabs in editors or browsers, they are visually separate parts of the same session
-    + `<C-b> c` Creates a new window. To close it you can just terminate the shells doing `<C-d>`
-    + `<C-b> N` Go to the _N_ th window. Note they are numbered
-    + `<C-b> p` Goes to the previous window
-    + `<C-b> n` Goes to the next window
-    + `<C-b> ,` Rename the current window
-    + `<C-b> w` List current windows
+- **Windows** - 類似編輯器或瀏覽器分頁，是同一個 session 中視覺上分開的區塊
+    + `<C-b> c`：建立新視窗。要關閉可在該 shell 按 `<C-d>` 結束
+    + `<C-b> N`：移動到第 _N_ 個視窗（視窗有編號）
+    + `<C-b> p`：移到上一個視窗
+    + `<C-b> n`：移到下一個視窗
+    + `<C-b> ,`：重新命名目前視窗
+    + `<C-b> w`：列出目前視窗
 
-- **Panes** - Like vim splits, panes let you have multiple shells in the same visual display.
-    + `<C-b> "` Split the current pane horizontally
-    + `<C-b> %` Split the current pane vertically
-    + `<C-b> <direction>` Move to the pane in the specified _direction_. Direction here means arrow keys.
-    + `<C-b> z` Toggle zoom for the current pane
-    + `<C-b> [` Start scrollback. You can then press `<space>` to start a selection and `<enter>` to copy that selection.
-    + `<C-b> <space>` Cycle through pane arrangements.
+- **Panes** - 類似 vim 的 split，同一個畫面可同時放多個 shell
+    + `<C-b> "`：水平分割目前窗格
+    + `<C-b> %`：垂直分割目前窗格
+    + `<C-b> <direction>`：移動到指定方向窗格（方向鍵）
+    + `<C-b> z`：切換目前窗格縮放
+    + `<C-b> [`：進入捲動回看模式。可按 `<space>` 開始選取、`<enter>` 複製選取內容
+    + `<C-b> <space>`：輪換窗格排列方式
 
-> To learn more about tmux, consider reading [this](https://www.hamvocke.com/blog/a-quick-and-easy-guide-to-tmux/) quick tutorial and [this](https://linuxcommand.org/lc3_adv_termmux.php) more detailed explanation.
+> 想進一步學 tmux，可先讀[這篇](https://www.hamvocke.com/blog/a-quick-and-easy-guide-to-tmux/)快速教學，再看[這篇](https://linuxcommand.org/lc3_adv_termmux.php)較完整說明。
 
-With tmux and SSH in your toolkit, you'll want to make your environment feel like home on any machine. That's where shell customization comes in.
+有了 tmux 與 SSH 之後，你會希望在任何機器上都能快速打造熟悉環境。這就是 shell 客製化登場的地方。
 
-# Customizing the Shell
+# 客製化 Shell
 
-A wide array of command line programs are configured using plain-text files known as _dotfiles_
-(because the file names begin with a `.`, e.g. `~/.vimrc`, so that they are
-hidden in the directory listing `ls` by default).
+很多命令列程式都透過純文字設定檔來設定，這些檔案通常稱為 _dotfiles_
+（因為檔名以 `.` 開頭，例如 `~/.vimrc`，所以預設在 `ls` 清單中是隱藏的）。
 
-> Dotfiles are yet another shell convention. The dot in the front is to "hide" them when listing (yes, another convention).
+> Dotfiles 也是 shell 慣例之一。前面的點是為了在列表時把它們「隱藏」起來（對，又是一個慣例）。
 
-Shells are one example of programs configured with such files. On startup, your shell will read many files to load its configuration.
-Depending on the shell and whether you are starting a login and/or interactive session, the entire process can be quite complex.
-[Here](https://blog.flowblok.id.au/2013-02/shell-startup-scripts.html) is an excellent resource on the topic.
+Shell 就是透過這類檔案設定的典型例子。啟動時，shell 會讀取多個檔案來載入設定。
+視你使用哪個 shell，以及是否啟動 login / interactive session，整個流程可能相當複雜。
+關於這點，[這篇文章](https://blog.flowblok.id.au/2013-02/shell-startup-scripts.html)很值得參考。
 
-For `bash`, editing your `.bashrc` or `.bash_profile` will work in most systems.
-Some other examples of tools that can be configured through dotfiles are:
+對 `bash` 來說，多數系統編輯 `.bashrc` 或 `.bash_profile` 就能生效。
+其他可透過 dotfiles 設定的工具還有：
 
 - `bash` - `~/.bashrc`, `~/.bash_profile`
 - `git` - `~/.gitconfig`
@@ -616,41 +615,41 @@ Some other examples of tools that can be configured through dotfiles are:
 - `ssh` - `~/.ssh/config`
 - `tmux` - `~/.tmux.conf`
 
-A common configuration change is adding new locations for the shell to find programs. You will encounter this pattern when installing software:
+一個常見設定是把新路徑加入 shell 搜尋程式的位置。你安裝軟體時很常看到這種寫法：
 
 ```shell
 export PATH="$PATH:path/to/append"
 ```
 
-Here, we are telling the shell to set the value of the $PATH variable to its current value plus a new path, and have all children processes inherit this new value for PATH.
-This will allow children processes to find programs located under `path/to/append`.
+這行是在告訴 shell：把 `$PATH` 設成「目前 PATH + 新路徑」，並讓所有子行程繼承更新後的 PATH。
+如此一來，子行程就能找到位於 `path/to/append` 之下的程式。
 
 
-Customizing your shell often means installing new command-line tools. Package managers make this easy. They handle downloading, installing, and updating software. Different operating systems have different package managers: macOS uses [Homebrew](https://brew.sh/), Ubuntu/Debian use `apt`, Fedora uses `dnf`, and Arch uses `pacman`. We'll cover package managers in more depth in the shipping code lecture.
+客製化 shell 往往代表要安裝新的命令列工具。套件管理器能讓這件事變簡單，會幫你處理下載、安裝與更新。不同作業系統有不同套件管理器：macOS 用 [Homebrew](https://brew.sh/)、Ubuntu/Debian 用 `apt`、Fedora 用 `dnf`、Arch 用 `pacman`。我們會在 shipping code 講座更深入介紹套件管理器。
 
-Here's how to install two useful tools using Homebrew on macOS:
+以下示範在 macOS 用 Homebrew 安裝兩個實用工具：
 
 ```shell
-# ripgrep: a faster grep with better defaults
+# ripgrep：更快、預設更好的 grep
 brew install ripgrep
 
-# fd: a faster, user-friendly find
+# fd：更快、對使用者更友善的 find
 brew install fd
 ```
 
-With these installed, you can use `rg` instead of `grep` and `fd` instead of `find`.
+安裝後，你就可以用 `rg` 取代 `grep`、用 `fd` 取代 `find`。
 
-> **Warning about `curl | bash`**: You'll often see installation instructions like `curl -fsSL https://example.com/install.sh | bash`. This pattern downloads a script and immediately executes it, which is convenient but risky; you're running code you haven't inspected. A safer approach is to download first, review, then execute:
+> **關於 `curl | bash` 的警告**：你常會看到像 `curl -fsSL https://example.com/install.sh | bash` 的安裝指令。這種做法會下載腳本後立刻執行，雖然方便但有風險，因為你在執行尚未檢查的程式碼。較安全做法是先下載、檢查，再執行：
 > ```shell
 > curl -fsSL https://example.com/install.sh -o install.sh
-> less install.sh  # review the script
+> less install.sh  # 先檢查腳本內容
 > bash install.sh
 > ```
-> Some installers use a slightly safer variant: `/bin/bash -c "$(curl -fsSL https://url)"` which at least ensures bash interprets the script rather than your current shell.
+> 有些安裝器會用稍微安全一點的變體：`/bin/bash -c "$(curl -fsSL https://url)"`，至少能確保由 bash 解析腳本，而不是你當下使用的 shell。
 
-When you try to run a command that isn't installed, your shell will show `command not found`. The website [command-not-found.com](https://command-not-found.com) is a helpful resource you can use to search for any command to find out how to install it across different package managers and distributions.
+當你執行尚未安裝的指令時，shell 會顯示 `command not found`。網站 [command-not-found.com](https://command-not-found.com) 很實用，可查詢任一指令在不同套件管理器與發行版上的安裝方式。
 
-Another useful tool is [`tldr`](https://tldr.sh/), which provides simplified, example-focused man pages. Instead of reading through lengthy documentation, you can quickly see common usage patterns:
+另一個實用工具是 [`tldr`](https://tldr.sh/)，它提供精簡、以範例為主的 man page。你不用啃長篇文件，也能快速掌握常見用法：
 
 ```console
 $ tldr fd
@@ -667,109 +666,94 @@ $ tldr fd
       fd --extension txt
 ```
 
-Sometimes you don't need a whole new program, but rather just a shortcut for an existing command with specific flags. That's where aliases come in.
+有時你不需要安裝新程式，只想幫既有指令做固定旗標捷徑，這就是 alias 的用途。
 
-We can also create our own command aliases using the `alias` shell built-in.
-A shell alias is a short form for another command that your shell will replace automatically before evaluating the expression.
-For instance, an alias in bash has the following structure:
+我們可以用 shell 內建的 `alias` 來建立自己的指令別名。
+shell alias 是另一個指令的縮寫，shell 會在解析前自動替換成原指令。
+以 bash 為例，格式如下：
 
 ```bash
 alias alias_name="command_to_alias arg1 arg2"
 ```
 
-> Note that there is no space around the equal sign `=`, because [`alias`](https://www.man7.org/linux/man-pages/man1/alias.1p.html) is a shell command that takes a single argument.
+> 注意 `=` 前後不能有空白，因為 [`alias`](https://www.man7.org/linux/man-pages/man1/alias.1p.html) 是只接受單一參數的 shell 指令。
 
-Aliases have many convenient features:
+alias 有很多方便的用途：
 
 ```bash
-# Make shorthands for common flags
+# 幫常用旗標做縮寫
 alias ll="ls -lh"
 
-# Save a lot of typing for common commands
+# 常用指令可大幅減少輸入字數
 alias gs="git status"
 alias gc="git commit"
 
-# Save you from mistyping
+# 避免手誤
 alias sl=ls
 
-# Overwrite existing commands for better defaults
-alias mv="mv -i"           # -i prompts before overwrite
-alias mkdir="mkdir -p"     # -p make parent dirs as needed
-alias df="df -h"           # -h prints human readable format
+# 覆寫既有指令，改成更好的預設行為
+alias mv="mv -i"           # -i 覆蓋前會提示
+alias mkdir="mkdir -p"     # -p 需要時自動建立父資料夾
+alias df="df -h"           # -h 以人類可讀格式顯示
 
-# Alias can be composed
+# Alias 可以組合
 alias la="ls -A"
 alias lla="la -l"
 
-# To ignore an alias run it prepended with \
+# 若要忽略 alias，可在前面加上 \
 \ls
-# Or disable an alias altogether with unalias
+# 或用 unalias 直接停用該 alias
 unalias la
 
-# To get an alias definition just call it with alias
+# 想查看 alias 定義，直接用 alias 查詢
 alias ll
-# Will print ll='ls -lh'
+# 會印出 ll='ls -lh'
 ```
 
-Aliases have limitations: they cannot take arguments in the middle of a command. For more complex behavior, you should use shell functions instead.
+alias 也有限制：它無法在指令中間靈活接收參數。若需要更複雜行為，應改用 shell function。
 
-Most shells support `Ctrl-R` for reverse history search. Type `Ctrl-R` and start typing to search through previous commands. Earlier we introduced `fzf` as a fuzzy finder; with fzf's shell integration configured, `Ctrl-R` becomes an interactive fuzzy search through your entire history, far more powerful than the default.
+多數 shell 支援 `Ctrl-R` 反向搜尋歷史指令。按下 `Ctrl-R` 後開始輸入即可搜尋過去指令。前面提過 `fzf` 是模糊搜尋器；若設定好 fzf 的 shell 整合，`Ctrl-R` 會變成互動式模糊搜尋整份歷史，比預設功能強很多。
 
-How should you organize your dotfiles? They should be in their own folder,
-under version control, and **symlinked** into place using a script. This has
-the benefits of:
+Dotfiles 應該如何管理？建議把它們放在獨立資料夾、納入版本控制，並用腳本建立 **symlink** 到正確位置。這樣有幾個好處：
 
-- **Easy installation**: if you log in to a new machine, applying your
-customizations will only take a minute.
-- **Portability**: your tools will work the same way everywhere.
-- **Synchronization**: you can update your dotfiles anywhere and keep them all
-in sync.
-- **Change tracking**: you're probably going to be maintaining your dotfiles
-for your entire programming career, and version history is nice to have for
-long-lived projects.
+- **安裝快速**：登入新機器時，幾分鐘內就能套用全部個人化設定。
+- **可攜性**：你的工具在任何環境都維持一致行為。
+- **可同步**：在任何地方更新 dotfiles，都能保持一致。
+- **可追蹤變更**：dotfiles 很可能會跟著你整個職涯，長期專案有版本歷史非常有價值。
 
-What should you put in your dotfiles?
-You can learn about your tool's settings by reading online documentation or
-[man pages](https://en.wikipedia.org/wiki/Man_page). Another great way is to
-search the internet for blog posts about specific programs, where authors will
-tell you about their preferred customizations. Yet another way to learn about
-customizations is to look through other people's dotfiles: you can find tons of
-[dotfiles
-repositories](https://github.com/search?o=desc&q=dotfiles&s=stars&type=Repositories)
-on GitHub --- see the most popular one
-[here](https://github.com/mathiasbynens/dotfiles) (we advise you not to blindly
-copy configurations though).
-[Here](https://dotfiles.github.io/) is another good resource on the topic.
+Dotfiles 裡該放什麼？
+你可以透過線上文件或 [man page](https://en.wikipedia.org/wiki/Man_page) 了解工具設定。另一種好方法是搜尋特定工具的部落格文章，作者通常會分享偏好的客製化方式。你也可以參考別人的 dotfiles；GitHub 上有大量 [dotfiles repositories](https://github.com/search?o=desc&q=dotfiles&s=stars&type=Repositories)，最熱門之一在[這裡](https://github.com/mathiasbynens/dotfiles)（但不建議盲目照抄設定）。
+[這裡](https://dotfiles.github.io/)也是不錯的資源。
 
-All of the class instructors have their dotfiles publicly accessible on GitHub: [Anish](https://github.com/anishathalye/dotfiles),
-[Jon](https://github.com/jonhoo/configs),
-[Jose](https://github.com/jjgo/dotfiles).
+本課講師們的 dotfiles 也都公開在 GitHub： [Anish](https://github.com/anishathalye/dotfiles)、
+[Jon](https://github.com/jonhoo/configs)、
+[Jose](https://github.com/jjgo/dotfiles)。
 
-**Frameworks and plugins** can improve your shell as well. Some popular general frameworks are [prezto](https://github.com/sorin-ionescu/prezto) or [oh-my-zsh](https://ohmyz.sh/), and smaller plugins that focus on specific features:
+**框架與外掛** 也能提升 shell 體驗。常見大型框架像 [prezto](https://github.com/sorin-ionescu/prezto) 或 [oh-my-zsh](https://ohmyz.sh/)，也有聚焦特定功能的小型外掛：
 
-- [zsh-syntax-highlighting](https://github.com/zsh-users/zsh-syntax-highlighting) - colors valid/invalid commands as you type
-- [zsh-autosuggestions](https://github.com/zsh-users/zsh-autosuggestions) - suggests commands from history as you type
-- [zsh-completions](https://github.com/zsh-users/zsh-completions) - additional completion definitions
-- [zsh-history-substring-search](https://github.com/zsh-users/zsh-history-substring-search) - fish-like history search
-- [powerlevel10k](https://github.com/romkatv/powerlevel10k) - fast, customizable prompt theme
+- [zsh-syntax-highlighting](https://github.com/zsh-users/zsh-syntax-highlighting) - 輸入時即時標示指令是否有效
+- [zsh-autosuggestions](https://github.com/zsh-users/zsh-autosuggestions) - 依歷史指令提供輸入建議
+- [zsh-completions](https://github.com/zsh-users/zsh-completions) - 額外補完定義
+- [zsh-history-substring-search](https://github.com/zsh-users/zsh-history-substring-search) - 類 fish 的歷史搜尋
+- [powerlevel10k](https://github.com/romkatv/powerlevel10k) - 快速且可高度客製的提示字元主題
 
-Shells like [fish](https://fishshell.com/) include many of these features by default.
+像 [fish](https://fishshell.com/) 這類 shell，預設就包含很多這些功能。
 
-> You don't need a massive framework like oh-my-zsh to get these features. Installing individual plugins is often faster and gives you more control. Large frameworks can significantly slow down shell startup time, so consider installing only what you actually use.
+> 你不一定需要像 oh-my-zsh 這種大型框架才能擁有這些功能。單獨安裝外掛通常更快，也更可控。大型框架可能明顯拖慢 shell 啟動速度，建議只安裝你真的會用到的項目。
 
 
-# AI in the Shell
+# Shell 裡的 AI
 
-There are many ways to incorporate AI tooling in the shell. Here are a few examples at different levels of integration:
+在 shell 中整合 AI 工具的方法很多。以下是幾種不同整合層級的例子：
 
-**Command generation**: Tools like [`simonw/llm`](https://github.com/simonw/llm) can help generate shell commands from natural language descriptions:
+**指令產生**：像 [`simonw/llm`](https://github.com/simonw/llm) 這類工具可根據自然語言描述產生 shell 指令：
 
 ```console
 $ llm cmd "find all python files modified in the last week"
 find . -name "*.py" -mtime -7
 ```
 
-**Pipeline integration**: LLMs can be integrated into shell pipelines to process and transform data. They're particularly useful when you need to extract information from inconsistent formats where regex would be painful:
+**Pipeline 整合**：LLM 可整合進 shell pipeline 來做資料處理與轉換。特別是當資料格式不一致、用 regex 會很痛苦時，它很有幫助：
 
 ```console
 $ cat users.txt
@@ -789,40 +773,40 @@ mike_wilson
 sarah.connor
 ```
 
-Note how we use `"$INSTRUCTIONS"` (quoted) because the variable contains spaces, and `< users.txt` to redirect the file's content to stdin.
+注意這裡使用 `"$INSTRUCTIONS"`（有加引號），因為變數內有空白；同時用 `< users.txt` 把檔案內容重新導向到 stdin。
 
-**AI shells**: Tools like [Claude Code](https://docs.anthropic.com/en/docs/claude-code) act as a meta-shell that accepts English commands and translates them into shell operations, file edits, and more complex multi-step tasks.
+**AI shell**：像 [Claude Code](https://docs.anthropic.com/en/docs/claude-code) 這類工具可作為「meta-shell」，接收英文需求並轉換成 shell 操作、檔案修改，甚至更複雜的多步驟任務。
 
-# Terminal Emulators
+# 終端機模擬器（Terminal Emulators）
 
-Along with customizing your shell, it is worth spending some time figuring out your choice of **terminal emulator** and its settings.
-A terminal emulator is a GUI program that provides the text-based interface where your shell runs.
-There are many terminal emulators out there.
+除了客製化 shell，也很值得花點時間挑選並設定你使用的 **終端機模擬器**。
+終端機模擬器是提供文字介面的 GUI 程式，shell 就是在裡面執行。
+市面上有很多不同選擇。
 
-Since you might be spending hundreds to thousands of hours in your terminal it pays off to look into its settings. Some of the aspects that you may want to modify in your terminal include:
+你可能會花上數百到數千小時在終端機裡工作，所以投資時間調整設定很划算。常見可調項目包括：
 
-- Font choice
-- Color Scheme
-- Keyboard shortcuts
-- Tab/Pane support
-- Scrollback configuration
-- Performance (some newer terminals like [Alacritty](https://github.com/alacritty/alacritty) or [Ghostty](https://ghostty.org/) offer GPU acceleration).
+- 字型選擇
+- 色彩主題
+- 鍵盤快捷鍵
+- 分頁／窗格支援
+- 回捲（scrollback）設定
+- 效能（部分新終端機如 [Alacritty](https://github.com/alacritty/alacritty) 或 [Ghostty](https://ghostty.org/) 支援 GPU 加速）
 
 
 
-# Exercises
+# 練習
 
-## Arguments and Globs
+## 參數與 Globs
 
-1. You might see commands like `cmd --flag -- --notaflag`. The `--` is a special argument that tells the program to stop parsing flags. Everything after `--` is treated as a positional argument. Why might this be useful? Try running `touch -- -myfile` and then removing it without `--`.
+1. 你可能看過像 `cmd --flag -- --notaflag` 這種指令。`--` 是特殊參數，代表程式從這裡開始停止解析旗標，後面的內容都當作位置參數。這為什麼有用？試著執行 `touch -- -myfile`，再嘗試不用 `--` 把它刪掉看看。
 
-1. Read [`man ls`](https://www.man7.org/linux/man-pages/man1/ls.1.html) and write an `ls` command that lists files in the following manner:
-    - Includes all files, including hidden files
-    - Sizes are listed in human readable format (e.g. 454M instead of 454279954)
-    - Files are ordered by recency
-    - Output is colorized
+1. 閱讀 [`man ls`](https://www.man7.org/linux/man-pages/man1/ls.1.html)，寫出一個 `ls` 指令，讓輸出符合以下條件：
+    - 包含所有檔案（含隱藏檔）
+    - 大小用人類可讀格式顯示（例如 454M 而非 454279954）
+    - 依照最近更新排序
+    - 輸出有顏色
 
-    A sample output would look like this:
+    範例輸出如下：
 
     ```
     -rw-r--r--   1 user group 1.1M Jan 14 09:53 baz
@@ -836,11 +820,11 @@ Since you might be spending hundreds to thousands of hours in your terminal it p
 ls -lath --color=auto
 {% endcomment %}
 
-1. Process substitution `<(command)` lets you use a command's output as if it were a file. Use `diff` with process substitution to compare the output of `printenv` and `export`. Why are they different? (Hint: try `diff <(printenv | sort) <(export | sort)`).
+1. 行程替換 `<(command)` 可讓你把指令輸出當成檔案使用。請用 process substitution 搭配 `diff` 比較 `printenv` 與 `export` 的輸出。為什麼它們不同？（提示：試試 `diff <(printenv | sort) <(export | sort)`）
 
-## Environment Variables
+## 環境變數
 
-1. Write bash functions `marco` and `polo` that do the following: whenever you execute `marco` the current working directory should be saved in some manner, then when you execute `polo`, no matter what directory you are in, `polo` should `cd` you back to the directory where you executed `marco`. For ease of debugging you can write the code in a file `marco.sh` and (re)load the definitions to your shell by executing `source marco.sh`.
+1. 寫兩個 bash function：`marco` 與 `polo`。需求如下：每次執行 `marco` 時，要把目前工作目錄存起來；之後不管你人在什麼目錄，執行 `polo` 都要把你 `cd` 回執行 `marco` 時的位置。為了方便除錯，你可以把程式寫在 `marco.sh`，再用 `source marco.sh`（重新）載入到 shell。
 
 {% comment %}
 marco() {
@@ -852,9 +836,9 @@ polo() {
 }
 {% endcomment %}
 
-## Return Codes
+## 回傳碼
 
-1. Say you have a command that fails rarely. In order to debug it you need to capture its output but it can be time consuming to get a failure run. Write a bash script that runs the following script until it fails and captures its standard output and error streams to files and prints everything at the end. Bonus points if you can also report how many runs it took for the script to fail.
+1. 假設你有個很少失敗的指令。為了除錯，你需要收集它的輸出，但要等到失敗案例可能要跑很久。請寫一個 bash script，重複執行下面程式直到失敗，並把它的標準輸出與錯誤輸出存成檔案，最後一次印出完整結果。加分：同時回報總共跑了幾次才失敗。
 
     ```bash
     #!/usr/bin/env bash
@@ -884,47 +868,47 @@ echo "found error after $count runs"
 cat out.txt
 {% endcomment %}
 
-## Signals and Job Control
+## 訊號與工作控制（Job Control）
 
-1. Start a `sleep 10000` job in a terminal, background it with `Ctrl-Z` and continue its execution with `bg`. Now use [`pgrep`](https://www.man7.org/linux/man-pages/man1/pgrep.1.html) to find its pid and [`pkill`](https://man7.org/linux/man-pages/man1/pgrep.1.html) to kill it without ever typing the pid itself. (Hint: use the `-af` flags).
+1. 在終端機啟動 `sleep 10000`，用 `Ctrl-Z` 把它丟到背景，再用 `bg` 繼續執行。接著用 [`pgrep`](https://www.man7.org/linux/man-pages/man1/pgrep.1.html) 找出 pid，並使用 [`pkill`](https://man7.org/linux/man-pages/man1/pgrep.1.html) 在「不手動輸入 pid」的情況下把它結束。（提示：使用 `-af` 旗標）
 
-1. Say you don't want to start a process until another completes. How would you go about it? In this exercise, our limiting process will always be `sleep 60 &`. One way to achieve this is to use the [`wait`](https://www.man7.org/linux/man-pages/man1/wait.1p.html) command. Try launching the sleep command and having an `ls` wait until the background process finishes.
+1. 假設你不想在某行程結束前啟動另一個行程，該怎麼做？在這題中，限制行程固定是 `sleep 60 &`。其中一種做法是用 [`wait`](https://www.man7.org/linux/man-pages/man1/wait.1p.html)。請試著先啟動 sleep，讓 `ls` 等到背景行程結束後才執行。
 
-    However, this strategy will fail if we start in a different bash session, since `wait` only works for child processes. One feature we did not discuss in the notes is that the `kill` command's exit status will be zero on success and nonzero otherwise. `kill -0` does not send a signal but will give a nonzero exit status if the process does not exist. Write a bash function called `pidwait` that takes a pid and waits until the given process completes. You should use `sleep` to avoid wasting CPU unnecessarily.
+    不過如果你換到另一個 bash session，這招會失效，因為 `wait` 只能等待子行程。講義中尚未提到的是：`kill` 指令成功時 exit status 為 0，失敗則為非 0。`kill -0` 不會送訊號，但若行程不存在會回傳非 0。請寫一個名為 `pidwait` 的 bash function，接收 pid 並等待該行程結束。請搭配 `sleep` 避免不必要的 CPU 浪費。
 
-## Files and Permissions
+## 檔案與權限
 
-1. (Advanced) Write a command or script to recursively find the most recently modified file in a directory. More generally, can you list all files by recency?
+1. （進階）寫一個指令或腳本，遞迴找出某資料夾中最近修改的檔案。更一般地說，你能否列出所有檔案並按修改時間排序？
 
-## Terminal Multiplexers
+## 終端機多工器
 
-1. Follow this `tmux` [tutorial](https://www.hamvocke.com/blog/a-quick-and-easy-guide-to-tmux/) and then learn how to do some basic customizations following [these steps](https://www.hamvocke.com/blog/a-guide-to-customizing-your-tmux-conf/).
+1. 跟著這份 `tmux` [教學](https://www.hamvocke.com/blog/a-quick-and-easy-guide-to-tmux/)操作，接著依照[這些步驟](https://www.hamvocke.com/blog/a-guide-to-customizing-your-tmux-conf/)學一些基本客製化。
 
-## Aliases and Dotfiles
+## Aliases 與 Dotfiles
 
-1. Create an alias `dc` that resolves to `cd` for when you type it wrong.
+1. 建立一個 `dc` alias，對應到 `cd`，用來防止打錯字。
 
-1. Run `history | awk '{$1="";print substr($0,2)}' | sort | uniq -c | sort -n | tail -n 10` to get your top 10 most used commands and consider writing shorter aliases for them. Note: this works for Bash; if you're using ZSH, use `history 1` instead of just `history`.
+1. 執行 `history | awk '{$1="";print substr($0,2)}' | sort | uniq -c | sort -n | tail -n 10`，找出你最常用的前 10 個指令，並考慮替它們設定更短的 alias。注意：這在 Bash 可用；若你用 ZSH，請把 `history` 改成 `history 1`。
 
-1. Create a folder for your dotfiles and set up version control.
+1. 建立一個 dotfiles 資料夾並設定版本控制。
 
-1. Add a configuration for at least one program, e.g. your shell, with some customization (to start off, it can be something as simple as customizing your shell prompt by setting `$PS1`).
+1. 至少為一個程式加入設定（例如 shell），做一些客製化（起手式可先從設定 `$PS1` 自訂提示字元開始）。
 
-1. Set up a method to install your dotfiles quickly (and without manual effort) on a new machine. This can be as simple as a shell script that calls `ln -s` for each file, or you could use a [specialized utility](https://dotfiles.github.io/utilities/).
+1. 設計一種能在新機器上快速（且不需手動）安裝 dotfiles 的方法。可以是簡單的 shell script，逐一執行 `ln -s`，或使用[專門工具](https://dotfiles.github.io/utilities/)。
 
-1. Test your installation script on a fresh virtual machine.
+1. 在一台全新虛擬機上測試你的安裝腳本。
 
-1. Migrate all of your current tool configurations to your dotfiles repository.
+1. 把你目前所有工具設定都遷移到 dotfiles repository。
 
-1. Publish your dotfiles on GitHub.
+1. 將你的 dotfiles 發佈到 GitHub。
 
-## Remote Machines (SSH)
+## 遠端主機（SSH）
 
-Install a Linux virtual machine (or use an already existing one) for these exercises. If you are not familiar with virtual machines check out [this](https://hibbard.eu/install-ubuntu-virtual-box/) tutorial for installing one.
+請先安裝一台 Linux 虛擬機（或使用既有虛擬機）來做以下練習。若你不熟悉虛擬機，可參考[這篇](https://hibbard.eu/install-ubuntu-virtual-box/)安裝教學。
 
-1. Go to `~/.ssh/` and check if you have a pair of SSH keys there. If not, generate them with `ssh-keygen -a 100 -t ed25519`. It is recommended that you use a password and use `ssh-agent`, more info [here](https://www.ssh.com/ssh/agent).
+1. 到 `~/.ssh/` 檢查是否已有 SSH 金鑰組。若沒有，請用 `ssh-keygen -a 100 -t ed25519` 產生。建議設定密碼並使用 `ssh-agent`，更多資訊看[這裡](https://www.ssh.com/ssh/agent)。
 
-1. Edit `.ssh/config` to have an entry as follows:
+1. 編輯 `.ssh/config`，加入以下設定：
 
     ```bash
     Host vm
@@ -934,12 +918,12 @@ Install a Linux virtual machine (or use an already existing one) for these exerc
         LocalForward 9999 localhost:8888
     ```
 
-1. Use `ssh-copy-id vm` to copy your ssh key to the server.
+1. 使用 `ssh-copy-id vm` 把你的 SSH 公鑰複製到伺服器。
 
-1. Start a webserver in your VM by executing `python -m http.server 8888`. Access the VM webserver by navigating to `http://localhost:9999` in your machine.
+1. 在 VM 內執行 `python -m http.server 8888` 啟動網頁伺服器。接著在你的本機打開 `http://localhost:9999` 存取 VM 內的網站。
 
-1. Edit your SSH server config by doing `sudo vim /etc/ssh/sshd_config` and disable password authentication by editing the value of `PasswordAuthentication`. Disable root login by editing the value of `PermitRootLogin`. Restart the `ssh` service with `sudo service sshd restart`. Try sshing in again.
+1. 用 `sudo vim /etc/ssh/sshd_config` 編輯 SSH 伺服器設定，透過調整 `PasswordAuthentication` 停用密碼登入；再調整 `PermitRootLogin` 停用 root 登入。接著用 `sudo service sshd restart` 重啟 SSH 服務，並重新測試登入。
 
-1. (Challenge) Install [`mosh`](https://mosh.org/) in the VM and establish a connection. Then disconnect the network adapter of the server/VM. Can mosh properly recover from it?
+1. （挑戰）在 VM 安裝 [`mosh`](https://mosh.org/) 並建立連線，然後中斷伺服器／VM 的網路介面。mosh 能否正確恢復連線？
 
-1. (Challenge) Look into what the `-N` and `-f` flags do in `ssh` and figure out a command to achieve background port forwarding.
+1. （挑戰）查一下 `ssh` 的 `-N` 與 `-f` 旗標用途，並找出可達成背景埠轉發（background port forwarding）的指令。
